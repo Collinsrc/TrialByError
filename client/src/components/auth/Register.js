@@ -10,6 +10,7 @@ import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerUser } from "../../actions/authActions";
+import Select from "@material-ui/core/Select";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,6 +32,10 @@ const useStyles = makeStyles((theme) => ({
     orientation: "horizontal",
     height: 2,
   },
+  selections: {
+    margin: 10,
+    width: "50%",
+  },
 }));
 
 const ButtonTheme = () => {
@@ -46,6 +51,80 @@ const ButtonTheme = () => {
     </Button>
   );
 };
+
+/*
+const ClassSpecSelection = () => {
+  const classes = useStyles();
+
+  const Classes = [
+    { value: "Warrior", label: "Warrior" },
+    { value: "Priest", label: "Priest" },
+    { value: "Rogue", label: "Rogue" },
+    { value: "Shaman", label: "Shaman" },
+    { value: "Warlock", label: "Warlock" },
+    { value: "Paladin", label: "Paladin" },
+    { value: "Monk", label: "Monk" },
+    { value: "Mage", label: "Mage" },
+    { value: "Hunter", label: "Hunter" },
+    { value: "Druid", label: "Druid" },
+    { value: "Demon Hunter", label: "Demon Hunter" },
+    { value: "Death Knight", label: "Death Knight" },
+  ];
+  ["Protection", "Arms", "Fury"]
+  ["Discipline", "Holy", "Shadow"]
+  ["Assassination", "Outlaw", "Subtlety"]
+  ["Elemental", "Enhancement", "Restoration"]
+  ["Affliction", "Demonology", "Destruction"]
+  ["Holy", "Protection", "Retribution"]
+  ["Brewmaster", "Mistweaver", "Windwalker"]
+  ["Arcane", "Fire", "Frost"]
+  ["Beast Mastery", "Marksmanship", "Survival"]
+  ["Balance", "Feral", "Guardian", "Restoration"]
+  ["Havoc", "Vengenance"]
+  ["Blood", "Frost", "Unholy"]
+
+  return (
+    <div>
+      <Select
+        className={classes.selections}
+        variant="outlined"
+        native
+        label="Class"
+        name="class"
+        id="class"
+        helperText="Choose a class"
+      >
+        {Classes.map(({ value, label }, index) => (
+          <option value={value}>{label}</option>
+        ))}
+      </Select>
+      <br />
+      <Select
+        className={classes.selections}
+        variant="outlined"
+        native
+        label="Class"
+        name="class"
+        id="class"
+        helperText="Choose a class"
+      >
+        <option value={"Warrior"}>Warrior</option>
+        <option value={"Paladin"}>Paladin</option>
+        <option value={"Hunter"}>Hunter</option>
+        <option value={"Rogue"}>Rogue</option>
+        <option value={"Priest"}>Priest</option>
+        <option value={"Shaman"}>Shaman</option>
+        <option value={"Mage"}>Mage</option>
+        <option value={"Warlock"}>Warlock</option>
+        <option value={"Monk"}>Monk</option>
+        <option value={"Druid"}>Druid</option>
+        <option value={"DemonHunter"}>Demon Hunter</option>
+        <option value={"DeathKnight"}>Death Knight</option>
+      </Select>
+    </div>
+  );
+};
+*/
 
 const DividerStyle = () => {
   const classes = useStyles();
@@ -101,6 +180,10 @@ class Register extends Component {
       email: "",
       password: "",
       password2: "",
+      characterName: "",
+      realID: "",
+      experience: "",
+      about: "",
       errors: {},
     };
   }
@@ -126,6 +209,10 @@ class Register extends Component {
       email: values.email,
       password: values.password,
       password2: values.password2,
+      characterName: values.characterName,
+      realID: values.realID,
+      experience: values.experience,
+      about: values.about,
     };
     this.props.registerUser(newUser, this.props.history);
     //console.log(newUser);
@@ -263,6 +350,8 @@ class Register extends Component {
                     style={{ margin: 10, width: "50%" }}
                   />
                   <br />
+                  {/* <ClassSpecSelection />
+                  <br /> */}
                   <TextField
                     name="realID"
                     id="realID"
@@ -287,7 +376,7 @@ class Register extends Component {
                     helperText={
                       errors.experience && touched.experience
                         ? errors.experience
-                        : "Enter your experience raid experience"
+                        : "Enter your raid experience"
                     }
                     error={
                       errors.experience && touched.experience ? true : false

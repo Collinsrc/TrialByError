@@ -27,6 +27,10 @@ router.post("/register", (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: req.body.password,
+        characterName: req.body.characterName,
+        experience: req.body.experience,
+        about: req.body.about,
+        realID: req.body.realID,
       });
       // Hash password before saving in database
       bcrypt.genSalt(10, (err, salt) => {
@@ -39,6 +43,16 @@ router.post("/register", (req, res) => {
             .catch((err) => console.log(err));
         });
       });
+    }
+  });
+});
+
+router.get("/getUserInfo/:username", (req, res) => {
+  User.findOne({ username: req.params.username }).then((user) => {
+    if (user) {
+      return res.json(user);
+    } else {
+      return res.status(400).json("User not found");
     }
   });
 });
