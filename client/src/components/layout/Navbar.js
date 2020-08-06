@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../actions/authActions";
+import { getUserInfo } from "../../actions/userInfoActions";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -96,14 +97,59 @@ const NavThemeLoggedIn = (props) => {
   );
 };
 
+const NavThemeLoggedInAdmin = (props) => {
+  const onLogoutClick = (e) => {
+    e.preventDefault();
+    props.logoutUser();
+  };
+  const classes = useStyles();
+  return (
+    <div className={classes.root}>
+      <AppBar position="fixed" className={classes.navBar}>
+        <Toolbar>
+          <Typography variant="h6" className={classes.title}>
+            <Link to="/" className={classes.link}>
+              Trial By Error
+            </Link>
+          </Typography>
+          <Button color="inherit" style={{ outline: 0 }}>
+            Administration
+          </Button>
+          <Button color="inherit" style={{ outline: 0 }}>
+            Guild Roster
+          </Button>
+          <Button
+            color="inherit"
+            style={{ outline: 0 }}
+            onClick={onLogoutClick}
+          >
+            Logout
+            {/* <Link to="/login" className={classes.link}>
+              Logout
+            </Link> */}
+          </Button>
+        </Toolbar>
+      </AppBar>
+    </div>
+  );
+};
+
 class Navbar extends Component {
   render() {
     if (this.props.auth.isAuthenticated === false) {
       return <NavTheme></NavTheme>;
     } else {
-      return (
-        <NavThemeLoggedIn logoutUser={this.props.logoutUser}></NavThemeLoggedIn>
-      );
+      const { user } = this.props.auth;
+      this.props.getUserInfo(user.username);
+      if(this.props.userInfo.isAdmin){
+        return(
+          <NavThemeLoggedInAdmin logoutUser={this.props.logoutUser}></NavThemeLoggedInAdmin>
+        );
+      } else {
+        return (
+          <NavThemeLoggedIn logoutUser={this.props.logoutUser}></NavThemeLoggedIn>
+        );
+      }
     }
   }
 }
@@ -111,10 +157,13 @@ class Navbar extends Component {
 Navbar.propTypes = {
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
+  getUserInfo: PropTypes.func.isRequired,
+  userInfo: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   auth: state.auth,
+  userInfo: state.userInfo.userData,
 });
 
-export default connect(mapStateToProps, { logoutUser })(Navbar);
+export default connect(mapStateToProps, { logoutUser, getUserInfo })(Navbar);

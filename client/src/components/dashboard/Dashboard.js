@@ -11,26 +11,23 @@ class Dashboard extends Component {
   };
 
   async componentDidMount() {
-    //this.props.auth.getState();
-    const username = await this.props.auth.username;
-    this.props.getUserInfo(username);
+    const { user } = this.props.auth;
+    this.props.getUserInfo(user.username);
   }
 
-  componentWillReceiveProps(nextProps) {
-    const { auth } = nextProps;
-    if (!auth) {
-      onBeforeRender();
-    }
-  }
   render() {
     const { user } = this.props.auth;
+    let adminTrue = "False";
+    if(this.props.userInfo.isAdmin === true){
+      adminTrue = "True";
+    }
     return (
       <div style={{ height: "75vh" }} className="container valign-wrapper">
         <div className="row">
           <div className="col s12 center-align">
             <h4>
               <b>Hey there,</b> {user.username} Is Admin:
-              {String(this.props.userInfo.isAdmin)}
+              {adminTrue}
               <p className="flow-text grey-text text-darken-1">
                 You are logged into a full-stack{" "}
                 <span style={{ fontFamily: "monospace" }}>MERN</span> app 👏
@@ -62,6 +59,6 @@ Dashboard.propTypes = {
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
-  userInfo: state.userInfo,
+  userInfo: state.userInfo.userData,
 });
 export default connect(mapStateToProps, { logoutUser, getUserInfo })(Dashboard);
