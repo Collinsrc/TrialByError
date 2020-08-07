@@ -45,7 +45,9 @@ const NavTheme = () => {
             </Link>
           </Typography>
           <Button color="inherit" style={{ outline: 0 }}>
-            Guild Roster
+            <Link to="/roster" className={classes.link}>
+              Guild Roster
+            </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
             <Link to="/register" className={classes.link}>
@@ -79,7 +81,9 @@ const NavThemeLoggedIn = (props) => {
             </Link>
           </Typography>
           <Button color="inherit" style={{ outline: 0 }}>
-            Guild Roster
+            <Link to="/roster" className={classes.link}>
+              Guild Roster
+            </Link>
           </Button>
           <Button
             color="inherit"
@@ -116,7 +120,9 @@ const NavThemeLoggedInAdmin = (props) => {
             Administration
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
-            Guild Roster
+            <Link to="/roster" className={classes.link}>
+              Guild Roster
+            </Link>
           </Button>
           <Button
             color="inherit"
@@ -141,13 +147,17 @@ class Navbar extends Component {
     } else {
       const { user } = this.props.auth;
       this.props.getUserInfo(user.username);
-      if(this.props.userInfo.isAdmin){
-        return(
-          <NavThemeLoggedInAdmin logoutUser={this.props.logoutUser}></NavThemeLoggedInAdmin>
+      if (this.props.userInfo.isAdmin) {
+        return (
+          <NavThemeLoggedInAdmin
+            logoutUser={this.props.logoutUser}
+          ></NavThemeLoggedInAdmin>
         );
       } else {
         return (
-          <NavThemeLoggedIn logoutUser={this.props.logoutUser}></NavThemeLoggedIn>
+          <NavThemeLoggedIn
+            logoutUser={this.props.logoutUser}
+          ></NavThemeLoggedIn>
         );
       }
     }

@@ -21,6 +21,7 @@ import Navbar from "./components/layout/Navbar";
 import Register from "./components/auth/Register";
 import Login from "./components/auth/Login";
 import Landing from "./components/layout/Landing";
+import Roster from "./components/roster/Roster";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,6 +52,7 @@ const GridArea = () => {
             <Route path="/" exact component={Landing} />
             <Route path="/register" component={Register} />
             <Route path="/login" component={Login} />
+            <Route path="/roster" component={Roster} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
             </Switch>

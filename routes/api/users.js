@@ -27,7 +27,14 @@ router.post("/register", (req, res) => {
         username: req.body.username,
         email: req.body.email,
         password: req.body.password,
-        characterName: req.body.characterName,
+        characters: [
+          {
+            characterName: req.body.characterName,
+            role: req.body.role,
+            class: req.body.class,
+            spec: req.body.spec,
+          },
+        ],
         experience: req.body.experience,
         about: req.body.about,
         realID: req.body.realID,
@@ -47,6 +54,9 @@ router.post("/register", (req, res) => {
   });
 });
 
+// @route GET api/user/getUserInfo/:username
+// @desc get information about a specific user
+// @access Public
 router.get("/getUserInfo/:username", (req, res) => {
   User.findOne({ username: req.params.username }).then((user) => {
     if (user) {

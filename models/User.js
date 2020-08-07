@@ -20,12 +20,35 @@ const UserSchema = new Schema({
     trim: true,
     minlength: 5,
   },
-  characterName: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 25,
-  },
+  characters: [
+    {
+      characterName: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 25,
+      },
+      role: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      class: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      spec: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+      isRaider: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  ],
   experience: {
     type: String,
     required: true,
@@ -45,10 +68,6 @@ const UserSchema = new Schema({
     maxlength: 50,
   },
   isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  isRaider: {
     type: Boolean,
     default: false,
   },

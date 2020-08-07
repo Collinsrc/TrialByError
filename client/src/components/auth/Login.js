@@ -10,9 +10,9 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { loginUser } from "../../actions/authActions";
-import Snackbar from '@material-ui/core/Snackbar';
-import IconButton from '@material-ui/core/IconButton';
-import CloseIcon from '@material-ui/icons/Close';
+import Snackbar from "@material-ui/core/Snackbar";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -66,8 +66,6 @@ const RegisterSchema = Yup.object().shape({
     .max(100, "Cannot be more than 100 characters"),
 });
 
-
-
 class Login extends Component {
   constructor() {
     super();
@@ -77,35 +75,54 @@ class Login extends Component {
       errors: {},
       open: false,
     };
+    this._isMounted = false;
   }
 
   handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
+    if (reason === "clickaway") {
       return;
     }
-  
-    this.setState({open: false});
+
+    this.setState({ open: false });
   };
-  
+
   componentDidMount() {
+    this._isMounted = true;
     // If logged in and user navigates to Login page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/dashboard");
     }
   }
 
-  async onSubmit(values) {
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
+  onSubmit(values) {
     const userData = {
       email: values.email,
       password: values.password,
     };
+    //await this.props.loginUser(userData);
+    this.attemptLogin(userData).then(() => {
+      if (this._isMounted) {
+        this.checkForErrors();
+      }
+    });
+    //this.props.loginUser(userData, this.checkForErrors());
+  }
+
+  async attemptLogin(userData) {
     await this.props.loginUser(userData);
-    this.checkForErrors();
-  };
+    return Promise.resolve();
+  }
 
   checkForErrors() {
-    if(this.props.errors.emailnotfound || this.props.errors.passwordincorrect) {
-      this.setState({open: true});
+    if (
+      this.props.errors.emailnotfound ||
+      this.props.errors.passwordincorrect
+    ) {
+      this.setState({ open: true });
     }
   }
 
@@ -124,26 +141,31 @@ class Login extends Component {
     return (
       <div>
         <Snackbar
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'center',
-        }}
-        open={this.state.open}
-        autoHideDuration={6000}
-        disableWindowBlurListener={false}
-        onClose={this.handleClose}
-        message="Incorrect username or password"
-        action={
-          <React.Fragment>
-            <Button color="secondary" size="small" onClick={this.handleClose}>
-              CLOSE
-            </Button>
-            <IconButton size="small" aria-label="close" color="inherit" onClick={this.handleClose}>
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </React.Fragment>
-        }
-      />
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          open={this.state.open}
+          autoHideDuration={6000}
+          disableWindowBlurListener={false}
+          onClose={this.handleClose}
+          message="Incorrect username or password"
+          action={
+            <React.Fragment>
+              <Button color="secondary" size="small" onClick={this.handleClose}>
+                CLOSE
+              </Button>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={this.handleClose}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
         <Typography variant="h4">Login</Typography>
         <div>
           <DividerStyle />

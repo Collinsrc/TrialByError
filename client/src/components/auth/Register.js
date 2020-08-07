@@ -10,6 +10,12 @@ import { Link, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { registerUser } from "../../actions/authActions";
+import Snackbar from "@material-ui/core/Snackbar";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+
+import SelectRole from "./SelectRole";
+import SelectClassSpec from "./SelectClassSpec";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,10 +37,6 @@ const useStyles = makeStyles((theme) => ({
     orientation: "horizontal",
     height: 2,
   },
-  selections: {
-    margin: 10,
-    width: "50%",
-  },
 }));
 
 const ButtonTheme = () => {
@@ -50,80 +52,6 @@ const ButtonTheme = () => {
     </Button>
   );
 };
-
-/*
-const ClassSpecSelection = () => {
-  const classes = useStyles();
-
-  const Classes = [
-    { value: "Warrior", label: "Warrior" },
-    { value: "Priest", label: "Priest" },
-    { value: "Rogue", label: "Rogue" },
-    { value: "Shaman", label: "Shaman" },
-    { value: "Warlock", label: "Warlock" },
-    { value: "Paladin", label: "Paladin" },
-    { value: "Monk", label: "Monk" },
-    { value: "Mage", label: "Mage" },
-    { value: "Hunter", label: "Hunter" },
-    { value: "Druid", label: "Druid" },
-    { value: "Demon Hunter", label: "Demon Hunter" },
-    { value: "Death Knight", label: "Death Knight" },
-  ];
-  ["Protection", "Arms", "Fury"]
-  ["Discipline", "Holy", "Shadow"]
-  ["Assassination", "Outlaw", "Subtlety"]
-  ["Elemental", "Enhancement", "Restoration"]
-  ["Affliction", "Demonology", "Destruction"]
-  ["Holy", "Protection", "Retribution"]
-  ["Brewmaster", "Mistweaver", "Windwalker"]
-  ["Arcane", "Fire", "Frost"]
-  ["Beast Mastery", "Marksmanship", "Survival"]
-  ["Balance", "Feral", "Guardian", "Restoration"]
-  ["Havoc", "Vengenance"]
-  ["Blood", "Frost", "Unholy"]
-
-  return (
-    <div>
-      <Select
-        className={classes.selections}
-        variant="outlined"
-        native
-        label="Class"
-        name="class"
-        id="class"
-        helperText="Choose a class"
-      >
-        {Classes.map(({ value, label }, index) => (
-          <option value={value}>{label}</option>
-        ))}
-      </Select>
-      <br />
-      <Select
-        className={classes.selections}
-        variant="outlined"
-        native
-        label="Class"
-        name="class"
-        id="class"
-        helperText="Choose a class"
-      >
-        <option value={"Warrior"}>Warrior</option>
-        <option value={"Paladin"}>Paladin</option>
-        <option value={"Hunter"}>Hunter</option>
-        <option value={"Rogue"}>Rogue</option>
-        <option value={"Priest"}>Priest</option>
-        <option value={"Shaman"}>Shaman</option>
-        <option value={"Mage"}>Mage</option>
-        <option value={"Warlock"}>Warlock</option>
-        <option value={"Monk"}>Monk</option>
-        <option value={"Druid"}>Druid</option>
-        <option value={"DemonHunter"}>Demon Hunter</option>
-        <option value={"DeathKnight"}>Death Knight</option>
-      </Select>
-    </div>
-  );
-};
-*/
 
 const DividerStyle = () => {
   const classes = useStyles();
@@ -183,15 +111,32 @@ class Register extends Component {
       realID: "",
       experience: "",
       about: "",
+      roleSelection: "",
+      classSelection: "",
+      specSelection: "",
       errors: {},
     };
+    this._isMounted = false;
   }
 
+  handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    this.setState({ open: false });
+  };
+
   componentDidMount() {
+    this._isMounted = true;
     // If logged in and user navigates to Register page, should redirect them to dashboard
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/dashboard");
     }
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -209,18 +154,73 @@ class Register extends Component {
       password: values.password,
       password2: values.password2,
       characterName: values.characterName,
+      role: this.state.roleSelection,
+      class: this.state.classSelection,
+      spec: this.state.specSelection,
       realID: values.realID,
       experience: values.experience,
       about: values.about,
     };
-    this.props.registerUser(newUser, this.props.history);
+    this.attemptRegistration(newUser).then(() => {
+      if (this._isMounted) {
+        this.checkForErrors();
+      }
+    });
     //console.log(newUser);
   };
 
+  async attemptRegistration(newUser) {
+    await this.props.registerUser(newUser, this.props.history);
+    return Promise.resolve();
+  }
+
+  checkForErrors() {
+    if (this.props.errors.email) {
+      this.setState({ open: true });
+    }
+  }
+
+  getSelectedRole = (data) => {
+    this.setState({ roleSelection: data });
+  };
+
+  getSelectedClass = (data) => {
+    this.setState({ classSelection: data });
+  };
+
+  getSelectedSpec = (data) => {
+    this.setState({ specSelection: data });
+  };
+
   render() {
-    //const { errors } = this.state;
     return (
       <div>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          open={this.state.open}
+          autoHideDuration={6000}
+          disableWindowBlurListener={false}
+          onClose={this.handleClose}
+          message="Email has already been used"
+          action={
+            <React.Fragment>
+              <Button color="secondary" size="small" onClick={this.handleClose}>
+                CLOSE
+              </Button>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={this.handleClose}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
         <Typography variant="h4">Joining the Team? Fill this out!</Typography>
         <div>
           <DividerStyle />
@@ -234,6 +234,7 @@ class Register extends Component {
               experience: "",
               about: "",
               realID: "",
+              roleSelection: "",
             }}
             validationSchema={RegisterSchema}
             onSubmit={(values) => {
@@ -349,8 +350,11 @@ class Register extends Component {
                     style={{ margin: 10, width: "50%" }}
                   />
                   <br />
-                  {/* <ClassSpecSelection />
-                  <br /> */}
+                  <SelectRole callback={this.getSelectedRole} />
+                  <SelectClassSpec
+                    callbackClass={this.getSelectedClass}
+                    callbackSpec={this.getSelectedSpec}
+                  />
                   <TextField
                     name="realID"
                     id="realID"
