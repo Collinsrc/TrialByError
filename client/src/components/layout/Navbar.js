@@ -85,15 +85,15 @@ const NavThemeLoggedIn = (props) => {
               Guild Roster
             </Link>
           </Button>
+          <Button color="inherit" style={{ outline: 0 }}>
+            Forums
+          </Button>
           <Button
             color="inherit"
             style={{ outline: 0 }}
             onClick={onLogoutClick}
           >
             Logout
-            {/* <Link to="/login" className={classes.link}>
-              Logout
-            </Link> */}
           </Button>
         </Toolbar>
       </AppBar>
@@ -124,15 +124,15 @@ const NavThemeLoggedInAdmin = (props) => {
               Guild Roster
             </Link>
           </Button>
+          <Button color="inherit" style={{ outline: 0 }}>
+            Forums
+          </Button>
           <Button
             color="inherit"
             style={{ outline: 0 }}
             onClick={onLogoutClick}
           >
             Logout
-            {/* <Link to="/login" className={classes.link}>
-              Logout
-            </Link> */}
           </Button>
         </Toolbar>
       </AppBar>
