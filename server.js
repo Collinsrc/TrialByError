@@ -6,6 +6,7 @@ const passport = require("passport");
 const path = require("path");
 
 const users = require("./routes/api/users");
+const raiders = require("./routes/api/raiders");
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use(passport.initialize());
 require("./config/passport")(passport);
 // Routes
 app.use("/api/users", users);
+app.use("/api/raiders", raiders);
 
 // Serve static asses if in production
 if (process.env.NODE_ENV === "production") {
