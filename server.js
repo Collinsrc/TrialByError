@@ -7,6 +7,7 @@ const path = require("path");
 
 const users = require("./routes/api/users");
 const raiders = require("./routes/api/raiders");
+const blizzard = require("./routes/api/blizzard");
 
 const app = express();
 
@@ -38,6 +39,7 @@ require("./config/passport")(passport);
 // Routes
 app.use("/api/users", users);
 app.use("/api/raiders", raiders);
+app.use("/api/blizzard", blizzard);
 
 // Serve static asses if in production
 if (process.env.NODE_ENV === "production") {

@@ -3,12 +3,14 @@ import { Typography } from "@material-ui/core";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getRaiders } from "../../actions/raiderActions";
+import axios from "axios";
 
 import { makeStyles } from "@material-ui/styles";
 import Divider from "@material-ui/core/Divider";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import Grid from "@material-ui/core/Grid";
+import CardMedia from "@material-ui/core/CardMedia";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -53,22 +55,62 @@ class Roster extends Component {
     });
   }
 
-  assignBasedOffRole() {
+  getCharacterBust = async (characterName) => {
+    let characterBust = "";
+    await axios
+      .get("/api/blizzard/getCharacterBust/" + characterName.toLowerCase())
+      .then((res) => {
+        if (res.data === "CBNF") {
+          return "";
+        } else {
+          let retrievedData = res.data;
+          characterBust = retrievedData.bust_url;
+        }
+      });
+    return Promise.resolve(characterBust);
+  };
+
+  createCharacter(character, characterBust) {
+    let characterNew = {
+      characterName: character.characterName,
+      characterClass: character.class,
+      role: character.role,
+      spec: character.spec,
+      avatarImg: characterBust,
+    };
+    return characterNew;
+  }
+
+  setRaiders() {}
+
+  async assignBasedOffRole() {
     let tanks = [];
     let dps = [];
     let healers = [];
-    this.state.raiders.forEach((character) => {
+    this.state.raiders.forEach(async (character) => {
       if (character.role === "Tank") {
-        tanks.push(character);
+        this.getCharacterBust(character.characterName).then((characterBust) => {
+          let characterNew = this.createCharacter(character, characterBust);
+          tanks.push(characterNew);
+          this.setState({ tanks: tanks });
+        });
       } else if (character.role === "DPS") {
-        dps.push(character);
+        this.getCharacterBust(character.characterName).then((characterBust) => {
+          let characterNew = this.createCharacter(character, characterBust);
+          dps.push(characterNew);
+          this.setState({ dps: dps });
+        });
       } else {
-        healers.push(character);
+        this.getCharacterBust(character.characterName).then((characterBust) => {
+          let characterNew = this.createCharacter(character, characterBust);
+          healers.push(characterNew);
+          this.setState({ healers: healers });
+        });
       }
     });
-    this.setState({ tanks: tanks });
-    this.setState({ dps: dps });
-    this.setState({ healers: healers });
+    //this.setState({ tanks: tanks });
+    //this.setState({ dps: dps });
+    //this.setState({ healers: healers });
   }
 
   getColorForCard(characterClass) {
@@ -126,21 +168,34 @@ class Roster extends Component {
                 key={character.name}
                 style={{
                   marginTop: "10px",
-                  backgroundColor: this.getColorForCard(character.class),
+                  backgroundColor: this.getColorForCard(
+                    character.characterClass
+                  ),
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 elevation={4}
               >
-                <CardContent>
-                  <Typography>
-                    <strong>Name: {character.characterName}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Class: {character.class}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Spec: {character.spec}</strong>
-                  </Typography>
-                </CardContent>
+                <CardMedia
+                  component="img"
+                  alt="CharacterBust"
+                  title="CharacterBust"
+                  image={character.avatarImg}
+                  style={{ width: "40%" }}
+                />
+                <div style={{ marginLeft: "20%" }}>
+                  <CardContent>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Name: {character.characterName}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Class: {character.characterClass}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Spec: {character.spec}</strong>
+                    </Typography>
+                  </CardContent>
+                </div>
               </Card>
             ))}
           </Grid>
@@ -152,21 +207,34 @@ class Roster extends Component {
                 key={character.name}
                 style={{
                   marginTop: "10px",
-                  backgroundColor: this.getColorForCard(character.class),
+                  backgroundColor: this.getColorForCard(
+                    character.characterClass
+                  ),
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 elevation={4}
               >
-                <CardContent>
-                  <Typography>
-                    <strong>Name: {character.characterName}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Class: {character.class}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Spec: {character.spec}</strong>
-                  </Typography>
-                </CardContent>
+                <CardMedia
+                  component="img"
+                  alt="CharacterBust"
+                  title="CharacterBust"
+                  image={character.avatarImg}
+                  style={{ width: "40%" }}
+                />
+                <div style={{ marginLeft: "20%" }}>
+                  <CardContent>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Name: {character.characterName}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Class: {character.characterClass}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Spec: {character.spec}</strong>
+                    </Typography>
+                  </CardContent>
+                </div>
               </Card>
             ))}
           </Grid>
@@ -178,21 +246,34 @@ class Roster extends Component {
                 key={character.name}
                 style={{
                   marginTop: "10px",
-                  backgroundColor: this.getColorForCard(character.class),
+                  backgroundColor: this.getColorForCard(
+                    character.characterClass
+                  ),
+                  display: "flex",
+                  alignItems: "center",
                 }}
                 elevation={4}
               >
-                <CardContent>
-                  <Typography>
-                    <strong>Name: {character.characterName}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Class: {character.class}</strong>
-                  </Typography>
-                  <Typography>
-                    <strong>Spec: {character.spec}</strong>
-                  </Typography>
-                </CardContent>
+                <CardMedia
+                  component="img"
+                  alt="CharacterBust"
+                  title="CharacterBust"
+                  image={character.avatarImg}
+                  style={{ width: "40%" }}
+                />
+                <div style={{ marginLeft: "20%" }}>
+                  <CardContent>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Name: {character.characterName}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Class: {character.characterClass}</strong>
+                    </Typography>
+                    <Typography style={{ textAlign: "left" }}>
+                      <strong>Spec: {character.spec}</strong>
+                    </Typography>
+                  </CardContent>
+                </div>
               </Card>
             ))}
           </Grid>
