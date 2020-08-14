@@ -93,7 +93,9 @@ const NavThemeLoggedIn = (props) => {
             style={{ outline: 0 }}
             onClick={onLogoutClick}
           >
-            Logout
+            <Link to="/login" className={classes.link}>
+              Logout
+            </Link>
           </Button>
         </Toolbar>
       </AppBar>
@@ -127,15 +129,15 @@ const NavThemeLoggedInAdmin = (props) => {
           <Button color="inherit" style={{ outline: 0 }}>
             Forums
           </Button>
-          <Link to="/login" className={classes.link}>
-            <Button
-              color="inherit"
-              style={{ outline: 0 }}
-              onClick={onLogoutClick}
-            >
+          <Button
+            color="inherit"
+            style={{ outline: 0 }}
+            onClick={onLogoutClick}
+          >
+            <Link to="/login" className={classes.link}>
               Logout
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </Toolbar>
       </AppBar>
     </div>
