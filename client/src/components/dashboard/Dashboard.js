@@ -18,7 +18,7 @@ class Dashboard extends Component {
   render() {
     const { user } = this.props.auth;
     let adminTrue = "False";
-    if(this.props.userInfo.isAdmin === true){
+    if (this.props.userInfo.isAdmin === true) {
       adminTrue = "True";
     }
     return (
