@@ -88,9 +88,9 @@ class Login extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    // If logged in and user navigates to Login page, should redirect them to dashboard
+    // If logged in and user navigates to Login page, should redirect them to landing
     if (this.props.auth.isAuthenticated) {
-      this.props.history.push("/dashboard");
+      this.props.history.push("/");
     }
   }
 
@@ -128,7 +128,7 @@ class Login extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.auth.isAuthenticated) {
-      this.props.history.push("/dashboard"); // push user to dashboard when they login
+      this.props.history.push("/"); // push user to landing when they login
     }
     if (nextProps.errors) {
       this.setState({
