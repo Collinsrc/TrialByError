@@ -49,7 +49,6 @@ class Roster extends Component {
 
   componentDidMount() {
     this.getRaiderInformation().then(() => {
-      //console.log(this.props.raider);
       this.setState({ raiders: this.props.raider });
       this.assignBasedOffRole();
     });
@@ -108,9 +107,6 @@ class Roster extends Component {
         });
       }
     });
-    //this.setState({ tanks: tanks });
-    //this.setState({ dps: dps });
-    //this.setState({ healers: healers });
   }
 
   getColorForCard(characterClass) {

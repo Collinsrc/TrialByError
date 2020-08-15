@@ -100,7 +100,6 @@ class Login extends Component {
     this.props.getUserInfo(user.username).then(() => {
       this._isMounted = false;
     });
-    //this._isMounted = false;
   }
 
   onSubmit(values) {
@@ -108,13 +107,11 @@ class Login extends Component {
       email: values.email,
       password: values.password,
     };
-    //await this.props.loginUser(userData);
     this.attemptLogin(userData).then(() => {
       if (this._isMounted) {
         this.checkForErrors();
       }
     });
-    //this.props.loginUser(userData, this.checkForErrors());
   }
 
   async attemptLogin(userData) {
@@ -245,5 +242,3 @@ const mapStateToProps = (state) => ({
   errors: state.errors,
 });
 export default connect(mapStateToProps, { loginUser, getUserInfo })(Login);
-
-//export default Login;
