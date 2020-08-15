@@ -86,7 +86,9 @@ const NavThemeLoggedIn = (props) => {
             </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
-            Forums
+            <Link to="/forums" className={classes.link}>
+              Forums
+            </Link>
           </Button>
           <Button
             color="inherit"
@@ -127,7 +129,9 @@ const NavThemeLoggedInAdmin = (props) => {
             </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
-            Forums
+            <Link to="/forums" className={classes.link}>
+              Forums
+            </Link>
           </Button>
           <Button
             color="inherit"
