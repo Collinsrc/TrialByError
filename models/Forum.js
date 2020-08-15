@@ -31,6 +31,12 @@ const ForumSchema = new Schema({
         type: String,
         trim: true,
         minlength: 10,
+        required: true,
+      },
+      author: {
+        type: String,
+        required: true,
+        trim: true,
       },
     },
   ],
