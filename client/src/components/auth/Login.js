@@ -13,6 +13,7 @@ import { loginUser } from "../../actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import { getUserInfo } from "../../actions/userInfoActions";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -95,7 +96,11 @@ class Login extends Component {
   }
 
   componentWillUnmount() {
-    this._isMounted = false;
+    const { user } = this.props.auth;
+    this.props.getUserInfo(user.username).then(() => {
+      this._isMounted = false;
+    });
+    //this._isMounted = false;
   }
 
   onSubmit(values) {
@@ -233,11 +238,12 @@ Login.propTypes = {
   loginUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
+  getUserInfo: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps, { loginUser })(Login);
+export default connect(mapStateToProps, { loginUser, getUserInfo })(Login);
 
 //export default Login;
