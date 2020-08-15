@@ -16,7 +16,6 @@ router.get("/getRaiders", (req, res) => {
             raiders.push(character);
           }
         });
-        //raiders.push(user.characters)
       });
       return res.json(raiders);
     } else {

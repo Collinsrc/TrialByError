@@ -166,7 +166,6 @@ class Register extends Component {
         this.checkForErrors();
       }
     });
-    //console.log(newUser);
   };
 
   async attemptRegistration(newUser) {
@@ -425,5 +424,3 @@ const mapStateToProps = (state) => ({
 });
 
 export default connect(mapStateToProps, { registerUser })(withRouter(Register));
-
-//export default Register;

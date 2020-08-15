@@ -23,7 +23,6 @@ const oauth2 = new ClientCredentials({
 router.get("/getCharacter", (req, res) => {
   let charName = "sephiroth";
   let oauthToken = oauth2.getToken().then((token) => {
-    //console.log(token);
     axios
       .get(
         `https://us.api.blizzard.com/profile/wow/character/area-52/${charName}/equipment?namespace=profile-us&locale=en_US`,
@@ -36,7 +35,6 @@ router.get("/getCharacter", (req, res) => {
         }
       )
       .then((ret) => {
-        //console.log(res);
         return res.json(ret.data);
       });
   });
@@ -45,7 +43,6 @@ router.get("/getCharacter", (req, res) => {
 router.get("/getCharacterAppearance", (req, res) => {
   let charName = "sephiroth";
   let oauthToken = oauth2.getToken().then((token) => {
-    //console.log(token);
     axios
       .get(
         `https://us.api.blizzard.com/profile/wow/character/area-52/sephiroth/appearance?namespace=profile-us&locale=en_US`,
@@ -58,7 +55,6 @@ router.get("/getCharacterAppearance", (req, res) => {
         }
       )
       .then((ret) => {
-        //console.log(res);
         return res.json(ret.data);
       });
   });
@@ -67,7 +63,6 @@ router.get("/getCharacterAppearance", (req, res) => {
 router.get("/getCharacterBust/:characterName", (req, res) => {
   let charName = req.params.characterName;
   oauth2.getToken().then((token) => {
-    //console.log(token);
     axios
       .get(
         `https://us.api.blizzard.com/profile/wow/character/area-52/${charName}/character-media?namespace=profile-us&locale=en_US`,
@@ -80,7 +75,6 @@ router.get("/getCharacterBust/:characterName", (req, res) => {
         }
       )
       .then((ret) => {
-        //console.log(res);
         return res.json(ret.data);
       })
       .catch((err) => {
