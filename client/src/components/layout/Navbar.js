@@ -86,7 +86,9 @@ const NavThemeLoggedIn = (props) => {
             </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
-            Forums
+            <Link to="/forums" className={classes.link}>
+              Forums
+            </Link>
           </Button>
           <Button
             color="inherit"
@@ -127,7 +129,9 @@ const NavThemeLoggedInAdmin = (props) => {
             </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
-            Forums
+            <Link to="/forums" className={classes.link}>
+              Forums
+            </Link>
           </Button>
           <Button
             color="inherit"
@@ -145,10 +149,12 @@ const NavThemeLoggedInAdmin = (props) => {
 };
 
 class Navbar extends Component {
-  componentDidMount = () => {
-    const { user } = this.props.auth;
-    this.props.getUserInfo(user.username);
-  };
+  // componentDidUpdate = async () => {
+  //   const { user } = this.props.auth;
+  //   if (this.props.auth.isAuthenticated) {
+  //     await this.props.getUserInfo(user.username);
+  //   }
+  // };
 
   render() {
     if (this.props.auth.isAuthenticated === false) {

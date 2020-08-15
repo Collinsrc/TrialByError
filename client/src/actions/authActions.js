@@ -1,7 +1,12 @@
 import axios from "axios";
 import setAuthToken from "../utils/setAuthToken";
 import jwt_decode from "jwt-decode";
-import { GET_ERRORS, SET_CURRENT_USER, USER_LOADING } from "./types";
+import {
+  GET_ERRORS,
+  SET_CURRENT_USER,
+  USER_LOADING,
+  GET_USER_INFO,
+} from "./types";
 // Register User
 export const registerUser = (userData, history) => async (dispatch) => {
   await axios
@@ -50,6 +55,14 @@ export const setUserLoading = () => {
     type: USER_LOADING,
   };
 };
+
+export const setUserInfo = (decoded) => {
+  return {
+    type: GET_USER_INFO,
+    payload: decoded,
+  };
+};
+
 // Log user out
 export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
@@ -58,4 +71,5 @@ export const logoutUser = () => (dispatch) => {
   setAuthToken(false);
   // Set current user to empty object {} which will set isAuthenticated to false
   dispatch(setCurrentUser({}));
+  dispatch(setUserInfo({}));
 };

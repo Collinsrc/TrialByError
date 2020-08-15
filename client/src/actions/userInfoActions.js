@@ -1,8 +1,8 @@
 import axios from "axios";
 import { GET_USER_INFO, GET_ERRORS } from "./types";
 
-export const getUserInfo = (username) => (dispatch) => {
-  axios
+export const getUserInfo = (username) => async (dispatch) => {
+  await axios
     .get("/api/users/getUserInfo/" + username)
     .then((res) =>
       dispatch({
