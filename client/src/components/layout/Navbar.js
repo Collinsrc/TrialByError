@@ -149,9 +149,11 @@ const NavThemeLoggedInAdmin = (props) => {
 };
 
 class Navbar extends Component {
-  componentDidMount = () => {
+  componentDidUpdate = async () => {
     const { user } = this.props.auth;
-    this.props.getUserInfo(user.username);
+    if (this.props.auth.isAuthenticated) {
+      await this.props.getUserInfo(user.username);
+    }
   };
 
   render() {
