@@ -9,6 +9,7 @@ import Paper from "@material-ui/core/Paper";
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
 import { setCurrentUser, logoutUser } from "./actions/authActions";
+import { setUserAdminStatus } from "./actions/userInfoActions";
 
 import { Provider } from "react-redux";
 import store from "./store";
@@ -82,6 +83,10 @@ if (localStorage.jwtToken) {
     // Redirect to login
     window.location.href = "./login";
   }
+}
+
+if (localStorage.loggedInUserIsAdmin) {
+  store.dispatch(setUserAdminStatus(localStorage.loggedInUserIsAdmin));
 }
 
 class App extends Component {

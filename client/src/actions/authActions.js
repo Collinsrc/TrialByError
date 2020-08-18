@@ -67,6 +67,7 @@ export const setUserInfo = (decoded) => {
 export const logoutUser = () => (dispatch) => {
   // Remove token from local storage
   localStorage.removeItem("jwtToken");
+  localStorage.removeItem("loggedInUserIsAdmin");
   // Remove auth header for future requests
   setAuthToken(false);
   // Set current user to empty object {} which will set isAuthenticated to false

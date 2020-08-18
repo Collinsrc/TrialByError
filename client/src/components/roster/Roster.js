@@ -80,8 +80,6 @@ class Roster extends Component {
     return characterNew;
   }
 
-  setRaiders() {}
-
   async assignBasedOffRole() {
     let tanks = [];
     let dps = [];
@@ -280,7 +278,7 @@ class Roster extends Component {
 }
 
 Roster.propTypes = {
-  raider: PropTypes.object.isRequired,
+  raider: PropTypes.objectOf(PropTypes.array).isRequired,
   getRaiders: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({

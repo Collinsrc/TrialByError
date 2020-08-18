@@ -26,4 +26,21 @@ router.post("/createForum", (req, res) => {
   });
 });
 
+// @route GET api/forums/getForums
+// @desc gets all forums WITHOUT responses
+// @access Public
+router.get("/getForums", (req, res) => {
+  Forum.find({}, { title: 1, category: 1, author: 1 })
+    .then((forums) => {
+      if (forums) {
+        return res.json(forums);
+      } else {
+        return res.json("NA");
+      }
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
 module.exports = router;
