@@ -30,10 +30,41 @@ router.post("/createForum", (req, res) => {
 // @desc gets all forums WITHOUT responses
 // @access Public
 router.get("/getForums", (req, res) => {
-  Forum.find({}, { title: 1, category: 1, author: 1 })
+  Forum.aggregate([
+    {
+      $project: {
+        title: 1,
+        category: 1,
+        author: 1,
+        dateString: {
+          $dateToString: { date: "$dateCreated", format: "%m-%d-%Y" },
+        },
+        replies: { $size: "$threadResponses" },
+        dateCreated: 1,
+      },
+    },
+    { $sort: { dateCreated: -1 } },
+  ])
     .then((forums) => {
       if (forums) {
         return res.json(forums);
+      } else {
+        return res.json("NA");
+      }
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
+// @route GET api/forums/getForum/:forumTitle
+// @desc gets a specified forum with all responses
+// @access Public
+router.get("/getForum/:forumTitle", (req, res) => {
+  Forum.findOne({ title: req.params.forumTitle })
+    .then((forum) => {
+      if (forum) {
+        return res.json(forum);
       } else {
         return res.json("NA");
       }

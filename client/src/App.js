@@ -24,6 +24,7 @@ import Login from "./components/auth/Login";
 import Landing from "./components/layout/Landing";
 import Roster from "./components/roster/Roster";
 import Forums from "./components/forums/Forums";
+import Forum from "./components/forums/Forum";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -55,7 +56,8 @@ const GridArea = () => {
             <Route path="/register" component={Register} />
             <Route path="/login" component={Login} />
             <Route path="/roster" component={Roster} />
-            <Route path="/forums" component={Forums} />
+            <Route path="/forums" exact component={Forums} />
+            <Route path="/forums/:forumTitle" exact component={Forum} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
             </Switch>

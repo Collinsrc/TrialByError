@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getForums } from "../../actions/forumActions";
+import MaterialTable from "material-table";
+
+import Typography from "@material-ui/core/Typography";
 
 class Forums extends Component {
   constructor() {
@@ -23,10 +26,25 @@ class Forums extends Component {
     return Promise.resolve();
   }
 
+  rowClick(rowData) {
+    //console.log(rowData.title);
+    window.location.href = "./forums/:" + rowData.title;
+  }
   render() {
     return (
       <div>
-        <p>Forums Page</p>
+        <MaterialTable
+          columns={[
+            { title: "Forum Name", field: "title" },
+            { title: "Category", field: "category" },
+            { title: "Author", field: "author" },
+            { title: "Date Created", field: "dateString" },
+            { title: "Replies", field: "replies", type: "numeric" },
+          ]}
+          data={this.state.forums}
+          title={<Typography variant="h4">Guild Forums</Typography>}
+          onRowClick={(event, rowData) => this.rowClick(rowData)}
+        />
       </div>
     );
   }

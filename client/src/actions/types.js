@@ -5,3 +5,4 @@ export const GET_USER_INFO = "GET_USER_INFO";
 export const GET_RAIDERS = "GET_RAIDERS";
 export const GET_FORUMS = "GET_FORUMS";
 export const SET_USER_ADMIN_STATUS = "SET_USER_ADMIN_STATUS";
+export const GET_SINGLE_FORUM = "GET_SINGLE_FORUM";

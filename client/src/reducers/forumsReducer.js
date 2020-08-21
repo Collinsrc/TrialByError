@@ -1,4 +1,4 @@
-import { GET_FORUMS } from "../actions/types";
+import { GET_FORUMS, GET_SINGLE_FORUM } from "../actions/types";
 
 const initialState = {
   forumData: {},
@@ -7,6 +7,11 @@ const initialState = {
 export default function (state = initialState, action) {
   switch (action.type) {
     case GET_FORUMS:
+      return {
+        ...state,
+        forumData: action.payload,
+      };
+    case GET_SINGLE_FORUM:
       return {
         ...state,
         forumData: action.payload,
