@@ -56,10 +56,10 @@ const GridArea = () => {
             <Route path="/register" component={Register} />
             <Route path="/login" component={Login} />
             <Route path="/roster" component={Roster} />
-            <Route path="/forums" exact component={Forums} />
-            <Route path="/forums/:forumTitle" exact component={Forum} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
+              <PrivateRoute exact path="/forums" component={Forums} />
+              <PrivateRoute exact path="/forums/:forumTitle" component={Forum} />
             </Switch>
           </Paper>
         </Grid>
