@@ -12,6 +12,7 @@ import Icon from "@material-ui/core/Icon";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
+import MUIRichTextEditor from "mui-rte";
 
 const styles = (theme) => {
   return {
@@ -44,6 +45,10 @@ const styles = (theme) => {
       border: "2px solid #000",
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
+      maxHeight: 600,
+      height: 400,
+      maxWidth: "60%",
+      overflow: "auto",
     },
   };
 };
@@ -85,15 +90,15 @@ class Forums extends Component {
     const { classes } = this.props;
     return (
       <div>
-        {/* <Button
+        <Button
           variant="contained"
           style={{ margin: 10, outline: 0, marginBottom: 20 }}
           className={classes.button}
           startIcon={<Icon>add</Icon>}
-          onClick={this.handleOpen()}
+          onClick={this.handleOpen}
         >
           Create Forum
-        </Button> */}
+        </Button>
         <MaterialTable
           columns={[
             { title: "Forum Name", field: "title" },
@@ -106,7 +111,7 @@ class Forums extends Component {
           title={<Typography variant="h4">Guild Forums</Typography>}
           onRowClick={(event, rowData) => this.rowClick(rowData)}
         />
-        {/* <Modal
+        <Modal
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
           className={classes.modal}
@@ -120,13 +125,29 @@ class Forums extends Component {
         >
           <Fade in={this.state.open}>
             <div className={classes.paper}>
-              <h2 id="transition-modal-title">Transition modal</h2>
-              <p id="transition-modal-description">
-                react-transition-group animates me.
-              </p>
+              <Typography variant="h2" style={{ textAlign: "center" }}>
+                Create Forum
+              </Typography>
+              <br />
+              <MUIRichTextEditor
+                className={classes.textEditor}
+                label="Forum Text"
+              />
+              <br />
+              <Button
+                variant="contained"
+                style={{
+                  marginTop: 20,
+                  outline: 0,
+                  marginLeft: "43%",
+                }}
+                className={classes.button}
+              >
+                Submit Forum
+              </Button>
             </div>
           </Fade>
-        </Modal> */}
+        </Modal>
       </div>
     );
   }

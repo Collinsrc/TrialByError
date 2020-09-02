@@ -23,6 +23,7 @@
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.26",
+    "mui-rte": "^1.24.0",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "recompose": "^0.30.0",
