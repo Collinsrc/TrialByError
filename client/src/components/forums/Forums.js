@@ -13,6 +13,9 @@ import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
 import MUIRichTextEditor from "mui-rte";
+import TextField from "@material-ui/core/TextField";
+import Divider from "@material-ui/core/Divider";
+import MenuItem from "@material-ui/core/MenuItem";
 
 const styles = (theme) => {
   return {
@@ -34,6 +37,7 @@ const styles = (theme) => {
       variant: "middle",
       orientation: "horizontal",
       height: 2,
+      marginBottom: 10,
     },
     modal: {
       display: "flex",
@@ -46,12 +50,47 @@ const styles = (theme) => {
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
       maxHeight: 600,
-      height: 400,
-      maxWidth: "60%",
+      height: 550,
+      width: "40%",
       overflow: "auto",
+      display: "flex",
+      outline: "none",
+    },
+    form: {
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      width: "100%",
+      height: "100%",
+    },
+    submitForumButton: {
+      justifyContent: "flex-center",
+      display: "flex",
+      backgroundColor: theme.palette.secondary.main,
+      color: "#ffffff",
+      marginBottom: 10,
+    },
+    modalTitle: {
+      display: "flex",
+      justifyContent: "center",
+    },
+    title: {
+      width: "50%",
+      justifyContent: "center",
+    },
+    category: {
+      width: "50%",
+      justifyContent: "center",
+    },
+    textField: {
+      width: "100%",
+      display: "flex",
+      justifyContent: "center",
     },
   };
 };
+
+const categories = ["General", "Raiding", "UI"];
 
 class Forums extends Component {
   constructor() {
@@ -60,6 +99,9 @@ class Forums extends Component {
     this.state = {
       forums: [],
       open: false,
+      categorySelection: "",
+      forumTitle: "",
+      initialText: "",
     };
   }
 
@@ -84,6 +126,28 @@ class Forums extends Component {
 
   handleClose = () => {
     this.setState({ open: false });
+  };
+
+  handleChangeCategory = (e) => {
+    this.setState({ categorySelection: e.target.value });
+  };
+
+  handleChangeForumTitle = (e) => {
+    this.setState({ forumTitle: e.target.value });
+  };
+
+  handleChangeText = (data) => {
+    this.setState({ initialText: data });
+  };
+
+  onSubmit = () => {
+    const newForum = {
+      title: this.state.forumTitle,
+      category: this.state.categorySelection,
+      author: this.props.auth.username,
+      initialText: this.state.initialText,
+    };
+    console.log(newForum);
   };
 
   render() {
@@ -125,26 +189,60 @@ class Forums extends Component {
         >
           <Fade in={this.state.open}>
             <div className={classes.paper}>
-              <Typography variant="h2" style={{ textAlign: "center" }}>
-                Create Forum
-              </Typography>
-              <br />
-              <MUIRichTextEditor
-                className={classes.textEditor}
-                label="Forum Text"
-              />
-              <br />
-              <Button
-                variant="contained"
-                style={{
-                  marginTop: 20,
-                  outline: 0,
-                  marginLeft: "43%",
-                }}
-                className={classes.button}
-              >
-                Submit Forum
-              </Button>
+              <form className={classes.form}>
+                <Typography variant="h2" className={classes.modalTitle}>
+                  Create Forum
+                </Typography>
+                <Divider className={classes.dividers} />
+                <div className={classes.textField}>
+                  <TextField
+                    required
+                    helperText="Enter a Forum Title"
+                    id="forumTitle"
+                    label="Forum Title"
+                    variant="outlined"
+                    value={this.state.forumTitle}
+                    onChange={this.handleChangeForumTitle}
+                    className={classes.title}
+                  />
+                </div>
+                <div className={classes.textField}>
+                  <TextField
+                    select
+                    required
+                    helperText="Select a category"
+                    id="category"
+                    name="category"
+                    label="Category"
+                    variant="outlined"
+                    className={classes.category}
+                    onChange={this.handleChangeCategory}
+                    value={this.state.categorySelection}
+                  >
+                    {categories.map((option) => (
+                      <MenuItem key={option} value={option}>
+                        {option}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </div>
+                <div className={classes.textField}>
+                  <MUIRichTextEditor
+                    label="Forum Text"
+                    onChange={this.handleChangeText}
+                  />
+                </div>
+                <div className={classes.textField}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    className={classes.submitForumButton}
+                    onClick={this.onSubmit}
+                  >
+                    Submit Forum
+                  </Button>
+                </div>
+              </form>
             </div>
           </Fade>
         </Modal>
