@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, createRef } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getForums } from "../../actions/forumActions";
@@ -51,7 +51,7 @@ const styles = (theme) => {
       padding: theme.spacing(2, 4, 3),
       maxHeight: 600,
       height: 550,
-      width: "40%",
+      width: "50%",
       overflow: "auto",
       display: "flex",
       outline: "none",
@@ -74,7 +74,7 @@ const styles = (theme) => {
       display: "flex",
       justifyContent: "center",
     },
-    title: {
+    forumTitle: {
       width: "50%",
       justifyContent: "center",
     },
@@ -109,6 +109,7 @@ class Forums extends Component {
     this.getAllForums().then(() => {
       this.setState({ forums: this.props.forums });
     });
+    this.ref = createRef(null);
   }
 
   async getAllForums() {
@@ -140,11 +141,17 @@ class Forums extends Component {
     this.setState({ initialText: data });
   };
 
-  onSubmit = () => {
+  onSave = (data) => {
+    this.setState({ initialText: data });
+  };
+
+  onSubmit = async () => {
+    await this.ref.current.save();
+    const { user } = this.props.auth;
     const newForum = {
       title: this.state.forumTitle,
       category: this.state.categorySelection,
-      author: this.props.auth.username,
+      author: user.username,
       initialText: this.state.initialText,
     };
     console.log(newForum);
@@ -203,7 +210,7 @@ class Forums extends Component {
                     variant="outlined"
                     value={this.state.forumTitle}
                     onChange={this.handleChangeForumTitle}
-                    className={classes.title}
+                    className={classes.forumTitle}
                   />
                 </div>
                 <div className={classes.textField}>
@@ -229,12 +236,19 @@ class Forums extends Component {
                 <div className={classes.textField}>
                   <MUIRichTextEditor
                     label="Forum Text"
-                    onChange={this.handleChangeText}
+                    ref={this.ref}
+                    onSave={this.onSave}
+                    customControls={[
+                      {
+                        name: "upload-image",
+                        icon: <Icon>Backup</Icon>,
+                        type: "callback",
+                      },
+                    ]}
                   />
                 </div>
                 <div className={classes.textField}>
                   <Button
-                    type="submit"
                     variant="contained"
                     className={classes.submitForumButton}
                     onClick={this.onSubmit}
