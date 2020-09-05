@@ -1,4 +1,4 @@
-import React, { Component, createRef } from "react";
+import React, { Component, createRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { getForums } from "../../actions/forumActions";
@@ -6,7 +6,7 @@ import compose from "recompose/compose";
 import MaterialTable from "material-table";
 
 import Button from "@material-ui/core/Button";
-import { withStyles } from "@material-ui/core/styles";
+import { withStyles, makeStyles } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
 import Icon from "@material-ui/core/Icon";
 import Modal from "@material-ui/core/Modal";
@@ -16,6 +16,13 @@ import MUIRichTextEditor from "mui-rte";
 import TextField from "@material-ui/core/TextField";
 import Divider from "@material-ui/core/Divider";
 import MenuItem from "@material-ui/core/MenuItem";
+import BackupIcon from "@material-ui/icons/Backup";
+import Grid from "@material-ui/core/Grid";
+import Popover from "@material-ui/core/Popover";
+import IconButton from "@material-ui/core/IconButton";
+import DoneIcon from "@material-ui/icons/Done";
+import CloseIcon from "@material-ui/icons/Close";
+import AttachFileIcon from "@material-ui/icons/AttachFile";
 
 const styles = (theme) => {
   return {
@@ -92,6 +99,141 @@ const styles = (theme) => {
 
 const categories = ["General", "Raiding", "UI"];
 
+const uploadImageToServer = (file) => {
+  return new Promise((resolve) => {
+    console.log(`Uploading image ${file.name} ...`);
+    setTimeout(() => {
+      console.log("Upload successful");
+      resolve(`https://return_uploaded_image_url/${file.name}`);
+    }, 2000);
+  });
+};
+
+const uploadImage = (file) => {
+  return new Promise(async (resolve, reject) => {
+    const url = await uploadImageToServer(file);
+    if (!url) {
+      reject();
+      return;
+    }
+    resolve({
+      data: {
+        url: url,
+        width: 300,
+        height: 200,
+        alignment: "left", // or "center", "right"
+        type: "image", // or "video"
+      },
+    });
+  });
+};
+
+const cardPopverStyles = makeStyles({
+  root: {
+    padding: 10,
+    maxWidth: 350,
+  },
+  textField: {
+    width: "100%",
+  },
+  input: {
+    display: "none",
+  },
+});
+
+const UploadImagePopover = (props) => {
+  const classes = cardPopverStyles(props);
+  const [state, setState] = useState({
+    anchor: null,
+    isCancelled: false,
+  });
+  const [data, setData] = useState({});
+
+  useEffect(() => {
+    setState({
+      anchor: props.anchor,
+      isCancelled: false,
+    });
+    setData({
+      file: undefined,
+    });
+  }, [props.anchor]);
+
+  return (
+    <Popover
+      anchorEl={state.anchor}
+      open={state.anchor !== null}
+      onExited={() => {
+        props.onSubmit(data, !state.isCancelled);
+      }}
+      anchorOrigin={{
+        vertical: "bottom",
+        horizontal: "right",
+      }}
+      transformOrigin={{
+        vertical: "top",
+        horizontal: "left",
+      }}
+    >
+      <Grid container spacing={1} className={classes.root}>
+        <Grid item xs={10}>
+          <TextField
+            className={classes.textField}
+            disabled
+            value={data.file?.name || ""}
+            placeholder="Click icon to attach image"
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <input
+            accept="image/*"
+            className={classes.input}
+            id="contained-button-file"
+            type="file"
+            onChange={(event) => {
+              setData({
+                ...data,
+                file: !!event.target.files[0],
+              });
+            }}
+          />
+          <label htmlFor="contained-button-file">
+            <IconButton
+              color="primary"
+              aria-label="upload image"
+              component="span"
+            >
+              <AttachFileIcon />
+            </IconButton>
+          </label>
+        </Grid>
+        <Grid item container xs={12} justify="flex-end">
+          <Button
+            onClick={() => {
+              setState({
+                anchor: null,
+                isCancelled: true,
+              });
+            }}
+          >
+            <CloseIcon />
+          </Button>
+          <Button
+            onClick={() => {
+              setState({
+                anchor: null,
+                isCancelled: false,
+              });
+            }}
+          >
+            <DoneIcon />
+          </Button>
+        </Grid>
+      </Grid>
+    </Popover>
+  );
+};
+
 class Forums extends Component {
   constructor() {
     super();
@@ -102,6 +244,7 @@ class Forums extends Component {
       categorySelection: "",
       forumTitle: "",
       initialText: "",
+      anchor: null,
     };
   }
 
@@ -116,6 +259,14 @@ class Forums extends Component {
     await this.props.getForums();
     return Promise.resolve();
   }
+
+  handleFileUpload = (file) => {
+    this.ref.current.insertAtomicBlockAsync(
+      "IMAGE",
+      uploadImage(file),
+      "Uploading now..."
+    );
+  };
 
   rowClick(rowData) {
     window.location.href = "./forums/:" + rowData.title;
@@ -182,6 +333,15 @@ class Forums extends Component {
           title={<Typography variant="h4">Guild Forums</Typography>}
           onRowClick={(event, rowData) => this.rowClick(rowData)}
         />
+        <UploadImagePopover
+          anchor={this.state.anchor}
+          onSubmit={(data, insert) => {
+            if (insert && data.file) {
+              this.handleFileUpload(data.file);
+            }
+            this.setState({ anchor: null });
+          }}
+        />
         <Modal
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
@@ -238,11 +398,30 @@ class Forums extends Component {
                     label="Forum Text"
                     ref={this.ref}
                     onSave={this.onSave}
+                    controls={[
+                      "title",
+                      "bold",
+                      "italic",
+                      "strikethrough",
+                      "numberList",
+                      "bulletList",
+                      "quote",
+                      "code",
+                      "highlight",
+                      "link",
+                      "underline",
+                      "media",
+                      "upload-image",
+                    ]}
+                    inlineToolbar={true}
                     customControls={[
                       {
                         name: "upload-image",
-                        icon: <Icon>Backup</Icon>,
+                        icon: <BackupIcon />,
                         type: "callback",
+                        onClick: (_editorState, _name, anchor) => {
+                          this.setState({ anchor: anchor });
+                        },
                       },
                     ]}
                   />
