@@ -32,3 +32,33 @@ export const getForum = (forumTitle) => async (dispatch) => {
     }
   });
 };
+
+// Create a new Forum
+export const createForum = (forum) => async (dispatch) => {
+  await axios
+    .post("/api/forums/createForum", forum)
+    .then((res) => {
+      if (res.data.forum === "Title of forum already exists") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else if (res.data.forum === "Couldn't add forum into database") {
+        dispatch({
+          type: GET_ERRORS,
+          paylod: res.data,
+        });
+      } else {
+        dispatch({
+          type: GET_ERRORS,
+          payload: {},
+        });
+      }
+    })
+    .catch((err) =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      })
+    );
+};

@@ -60,7 +60,7 @@ router.post("/register", (req, res) => {
 router.get("/getUserInfo/:username", (req, res) => {
   User.findOne(
     { username: req.params.username },
-    { username: 1, isAdmin: 1 }
+    { username: 1, isAdmin: 1, characters: 1 }
   ).then((user) => {
     if (user) {
       return res.json(user);

@@ -9,19 +9,23 @@ const Forum = require("../../models/Forum");
 router.post("/createForum", (req, res) => {
   Forum.findOne({ title: req.body.title }).then((forum) => {
     if (forum) {
-      return res.json("Title of forum already exists");
+      return res.json({ forum: "Title of forum already exists" });
     } else {
       const newForum = new Forum({
         title: req.body.title,
         category: req.body.category,
         author: req.body.author,
-        initalText: req.body.initalText,
+        initialText: req.body.initialText,
+        uploadedImages: req.body.uploadedImages,
       });
 
       newForum
         .save()
         .then((forum) => res.json(forum))
-        .catch(() => res.json("Couldn't add forum into database"));
+        .catch((err) =>
+          res.json({ forum: "Couldn't add forum into database" })
+        );
+      //
     }
   });
 });

@@ -1,7 +1,7 @@
 import React, { Component, createRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { getForums } from "../../actions/forumActions";
+import { getForums, createForum } from "../../actions/forumActions";
 import compose from "recompose/compose";
 import MaterialTable from "material-table";
 
@@ -23,6 +23,10 @@ import IconButton from "@material-ui/core/IconButton";
 import DoneIcon from "@material-ui/icons/Done";
 import CloseIcon from "@material-ui/icons/Close";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
+import Snackbar from "@material-ui/core/Snackbar";
+
+import { storage } from "../../firebase";
+import { getUserInfo } from "../../actions/userInfoActions";
 
 const styles = (theme) => {
   return {
@@ -101,11 +105,23 @@ const categories = ["General", "Raiding", "UI"];
 
 const uploadImageToServer = (file) => {
   return new Promise((resolve) => {
-    console.log(`Uploading image ${file.name} ...`);
-    setTimeout(() => {
-      console.log("Upload successful");
-      resolve(`https://return_uploaded_image_url/${file.name}`);
-    }, 2000);
+    const uploadTask = storage.ref(`images/${file.name}`).put(file);
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {},
+      (error) => {
+        console.log(error);
+      },
+      () => {
+        storage
+          .ref("images")
+          .child(file.name)
+          .getDownloadURL()
+          .then((url) => {
+            resolve(url);
+          });
+      }
+    );
   });
 };
 
@@ -126,6 +142,12 @@ const uploadImage = (file) => {
       },
     });
   });
+};
+
+const deleteUploadedImages = (images) => {
+  for (let i = 0; i < images.length; i++) {
+    storage.ref(`images/${images[i]}`).delete();
+  }
 };
 
 const cardPopverStyles = makeStyles({
@@ -193,7 +215,7 @@ const UploadImagePopover = (props) => {
             onChange={(event) => {
               setData({
                 ...data,
-                file: !!event.target.files[0],
+                file: event.target.files[0],
               });
             }}
           />
@@ -245,14 +267,36 @@ class Forums extends Component {
       forumTitle: "",
       initialText: "",
       anchor: null,
+      uploadedImages: [],
+      openSnackbar: false,
+      characters: [],
+      raidingCharacters: [],
+      author: "",
     };
+    this._isMounted = false;
   }
 
   componentDidMount() {
+    this._isMounted = true;
+    const { user } = this.props.auth;
+    this.getUserInfo(user.username).then(() => {
+      this.setState({ characters: this.props.userInfo.characters });
+      let raidingCharacters = [];
+      for (const character of this.state.characters) {
+        if (character.isRaider) {
+          raidingCharacters.push(character);
+        }
+      }
+      this.setState({ raidingCharacters: raidingCharacters });
+    });
     this.getAllForums().then(() => {
       this.setState({ forums: this.props.forums });
     });
     this.ref = createRef(null);
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   async getAllForums() {
@@ -260,16 +304,28 @@ class Forums extends Component {
     return Promise.resolve();
   }
 
+  async getUserInfo(username) {
+    await this.props.getUserInfo(username);
+    return Promise.resolve();
+  }
+
   handleFileUpload = (file) => {
+    let didUpload = false;
     this.ref.current.insertAtomicBlockAsync(
       "IMAGE",
-      uploadImage(file),
+      (didUpload = uploadImage(file)),
       "Uploading now..."
     );
+    if (didUpload) {
+      let uploadedImages = this.state.uploadedImages;
+      uploadedImages.push(file.name);
+      this.setState({ uploadedImages: uploadedImages });
+      console.log(this.state.uploadedImages);
+    }
   };
 
   rowClick(rowData) {
-    window.location.href = "./forums/:" + rowData.title;
+    this.props.history.push("./forums/:" + rowData.title);
   }
 
   handleOpen = () => {
@@ -277,50 +333,113 @@ class Forums extends Component {
   };
 
   handleClose = () => {
+    deleteUploadedImages(this.state.uploadedImages);
+    this.setState({ uploadedImages: [] });
     this.setState({ open: false });
+  };
+
+  handleSnackClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    this.setState({ openSnackbar: false });
   };
 
   handleChangeCategory = (e) => {
     this.setState({ categorySelection: e.target.value });
   };
 
+  handleChangePostAs = (e) => {
+    this.setState({ author: e.target.value });
+  };
+
   handleChangeForumTitle = (e) => {
     this.setState({ forumTitle: e.target.value });
   };
 
-  handleChangeText = (data) => {
-    this.setState({ initialText: data });
-  };
-
-  onSave = (data) => {
+  onSave = async (data) => {
     this.setState({ initialText: data });
   };
 
   onSubmit = async () => {
     await this.ref.current.save();
-    const { user } = this.props.auth;
     const newForum = {
       title: this.state.forumTitle,
       category: this.state.categorySelection,
-      author: user.username,
+      author: this.state.author,
       initialText: this.state.initialText,
+      uploadedImages: this.state.uploadedImages,
     };
-    console.log(newForum);
+    this.attemptForumSubmit(newForum).then(() => {
+      if (this._isMounted) {
+        this.checkForErrors(newForum);
+      }
+    });
   };
+
+  async attemptForumSubmit(newForum) {
+    await this.props.createForum(newForum);
+    return Promise.resolve();
+  }
+
+  checkForErrors(newForum) {
+    if (this.props.errors.forum) {
+      this.setState({ openSnackbar: true });
+      return;
+    }
+    this.props.history.push("./forums/:" + newForum.title);
+  }
 
   render() {
     const { classes } = this.props;
     return (
       <div>
-        <Button
-          variant="contained"
-          style={{ margin: 10, outline: 0, marginBottom: 20 }}
-          className={classes.button}
-          startIcon={<Icon>add</Icon>}
-          onClick={this.handleOpen}
-        >
-          Create Forum
-        </Button>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          open={this.state.openSnackbar}
+          autoHideDuration={6000}
+          disableWindowBlurListener={false}
+          onClose={this.handleSnackClose}
+          message="Forum already exists or could not add forum"
+          action={
+            <React.Fragment>
+              <Button
+                color="secondary"
+                size="small"
+                onClick={this.handleSnackClose}
+              >
+                CLOSE
+              </Button>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={this.handleSnackClose}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
+        <div>
+          <Typography variant="h6">
+            Contribute to the conversation as a raider!
+          </Typography>
+          <Button
+            variant="contained"
+            style={{ margin: 10, outline: 0, marginBottom: 20 }}
+            className={classes.button}
+            startIcon={<Icon>add</Icon>}
+            onClick={this.handleOpen}
+            disabled={this.state.raidingCharacters.length < 1}
+          >
+            Create Forum
+          </Button>
+        </div>
         <MaterialTable
           columns={[
             { title: "Forum Name", field: "title" },
@@ -394,6 +513,29 @@ class Forums extends Component {
                   </TextField>
                 </div>
                 <div className={classes.textField}>
+                  <TextField
+                    select
+                    required
+                    helperText="Select a raider to post as"
+                    id="raider"
+                    name="raider"
+                    label="Post As..."
+                    variant="outlined"
+                    className={classes.category}
+                    onChange={this.handleChangePostAs}
+                    value={this.state.author}
+                  >
+                    {this.state.raidingCharacters.map((option) => (
+                      <MenuItem
+                        key={option.characterName}
+                        value={option.characterName}
+                      >
+                        {option.characterName}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                </div>
+                <div className={classes.textField}>
                   <MUIRichTextEditor
                     label="Forum Text"
                     ref={this.ref}
@@ -446,17 +588,23 @@ class Forums extends Component {
 
 Forums.propTypes = {
   getForums: PropTypes.func.isRequired,
+  createForum: PropTypes.func.isRequired,
   forums: PropTypes.objectOf(PropTypes.array).isRequired,
   auth: PropTypes.object.isRequired,
   classes: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired,
+  getUserInfo: PropTypes.func.isRequired,
+  userInfo: PropTypes.object.isRequired,
 };
 const mapStateToProps = (state) => ({
   forums: state.forums.forumData,
   auth: state.auth,
+  errors: state.errors,
+  userInfo: state.userInfo.userData,
 });
 
 export default compose(
-  connect(mapStateToProps, { getForums }),
+  connect(mapStateToProps, { getForums, createForum, getUserInfo }),
   withStyles(styles, {
     name: "Forums",
   })
