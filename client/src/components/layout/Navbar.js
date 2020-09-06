@@ -152,7 +152,7 @@ class Navbar extends Component {
     if (this.props.auth.isAuthenticated === false) {
       return <NavTheme></NavTheme>;
     } else {
-      if (this.props.userInfo.isAdmin) {
+      if (this.props.userIsAdmin === "true" || this.props.userInfo.isAdmin) {
         return (
           <NavThemeLoggedInAdmin
             logoutUser={this.props.logoutUser}
@@ -178,6 +178,7 @@ Navbar.propTypes = {
 const mapStateToProps = (state) => ({
   auth: state.auth,
   userInfo: state.userInfo.userData,
+  userIsAdmin: state.userInfo.userIsAdmin,
 });
 
 export default connect(mapStateToProps, { logoutUser })(Navbar);

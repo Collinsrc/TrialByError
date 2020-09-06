@@ -19,11 +19,10 @@ const ForumSchema = new Schema({
     required: true,
     trim: true,
   },
-  initalText: {
+  initialText: {
     type: String,
     required: true,
     trim: true,
-    minlength: 10,
   },
   threadResponses: [
     {
@@ -38,8 +37,21 @@ const ForumSchema = new Schema({
         required: true,
         trim: true,
       },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
     },
   ],
+  uploadedImages: [
+    {
+      type: String,
+    },
+  ],
+  dateCreated: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 module.exports = Forum = mongoose.model("forums", ForumSchema);

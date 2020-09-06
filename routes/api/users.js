@@ -58,7 +58,10 @@ router.post("/register", (req, res) => {
 // @desc get information about a specific user
 // @access Public
 router.get("/getUserInfo/:username", (req, res) => {
-  User.findOne({ username: req.params.username }).then((user) => {
+  User.findOne(
+    { username: req.params.username },
+    { username: 1, isAdmin: 1, characters: 1 }
+  ).then((user) => {
     if (user) {
       return res.json(user);
     } else {

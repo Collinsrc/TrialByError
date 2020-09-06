@@ -9,6 +9,7 @@ import Paper from "@material-ui/core/Paper";
 import jwt_decode from "jwt-decode";
 import setAuthToken from "./utils/setAuthToken";
 import { setCurrentUser, logoutUser } from "./actions/authActions";
+import { setUserAdminStatus } from "./actions/userInfoActions";
 
 import { Provider } from "react-redux";
 import store from "./store";
@@ -23,6 +24,7 @@ import Login from "./components/auth/Login";
 import Landing from "./components/layout/Landing";
 import Roster from "./components/roster/Roster";
 import Forums from "./components/forums/Forums";
+import Forum from "./components/forums/Forum";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,9 +56,10 @@ const GridArea = () => {
             <Route path="/register" component={Register} />
             <Route path="/login" component={Login} />
             <Route path="/roster" component={Roster} />
-            <Route path="/forums" component={Forums} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
+              <PrivateRoute exact path="/forums" component={Forums} />
+              <PrivateRoute exact path="/forums/:forumTitle" component={Forum} />
             </Switch>
           </Paper>
         </Grid>
@@ -82,6 +85,10 @@ if (localStorage.jwtToken) {
     // Redirect to login
     window.location.href = "./login";
   }
+}
+
+if (localStorage.loggedInUserIsAdmin) {
+  store.dispatch(setUserAdminStatus(localStorage.loggedInUserIsAdmin));
 }
 
 class App extends Component {
