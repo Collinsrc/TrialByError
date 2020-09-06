@@ -62,3 +62,13 @@ export const createForum = (forum) => async (dispatch) => {
       })
     );
 };
+
+//Add response
+export const addResponse = (forumResponse) => async (dispatch) => {
+  await axios.post("/api/forums/addResponse", forumResponse).catch((err) =>
+    dispatch({
+      type: GET_ERRORS,
+      payload: err.response.data,
+    })
+  );
+};

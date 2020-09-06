@@ -78,4 +78,24 @@ router.get("/getForum/:forumTitle", (req, res) => {
     });
 });
 
+// @route POST api/forums/addResponse/
+// @desc adds a response to threadResponses array of forum
+// @access Public
+router.post("/addResponse", (req, res) => {
+  Forum.updateOne(
+    { title: req.body.title },
+    {
+      $push: {
+        threadResponses: {
+          author: req.body.author,
+          responseText: req.body.responseText,
+        },
+        uploadedImages: req.body.uploadedImages,
+      },
+    }
+  ).catch((err) => {
+    return res.json("ERR " + err);
+  });
+});
+
 module.exports = router;
