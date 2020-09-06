@@ -28,17 +28,20 @@ import DoneIcon from "@material-ui/icons/Done";
 import CloseIcon from "@material-ui/icons/Close";
 import AttachFileIcon from "@material-ui/icons/AttachFile";
 import { storage } from "../../firebase";
+import Pagination from "@material-ui/lab/Pagination";
+import { Link } from "react-router-dom";
 
 const styles = (theme) => {
   return {
     avatar: {
-      width: "33%",
+      width: "25%",
+      marginLeft: 45,
     },
     cardTextEditor: {
-      width: "33%",
+      width: "46%",
     },
     card: {
-      backgroundColor: "#ededed",
+      backgroundColor: "#fafafa",
     },
     avatarImage: {
       height: 100,
@@ -99,9 +102,29 @@ const styles = (theme) => {
       justifyContent: "center",
     },
     playerName: {
-      textAlign: "left",
-      marginLeft: 16,
       marginTop: 10,
+    },
+    postDate: {
+      width: "24%",
+    },
+    date: {
+      textAlign: "right",
+    },
+    pagination: {
+      marginTop: 10,
+    },
+    playerNameDiv: {
+      width: 200,
+      justifyContent: "center",
+      marginLeft: -50,
+    },
+    link: {
+      textDecoration: "none",
+      color: "inherit",
+      "&:hover": {
+        color: "inherit",
+        textDecoration: "none",
+      },
     },
   };
 };
@@ -260,8 +283,8 @@ const UploadImagePopover = (props) => {
 };
 
 class Forum extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       forum: {},
@@ -275,6 +298,10 @@ class Forum extends Component {
       author: "",
       responseText: "",
       baseForum: {},
+      page: 1,
+      count: 1,
+      pageSize: 5,
+      currentIndex: -1,
     };
   }
 
@@ -305,26 +332,52 @@ class Forum extends Component {
     return Promise.resolve();
   }
 
+  sortByDate(a, b) {
+    var dateA = new Date(a.uneditedDate),
+      dateB = new Date(b.uneditedDate);
+    return dateA - dateB;
+  }
+
   async combineAllForumInformation() {
     let forum = [];
 
     this.getCharacterAvatar(this.state.forum.author).then((characterAvatar) => {
+      let date = new Date(this.state.forum.dateCreated);
       let entry = { author: "", text: "", avatarURL: "", date: null };
       entry.author = this.state.forum.author;
       entry.text = this.state.forum.initialText;
       entry.avatarURL = characterAvatar;
-      entry.date = this.state.forum.dateCreated;
+      entry.date = date.toUTCString();
       this.setState({ baseForum: entry });
+      this.setState({ count: 1 });
     });
     this.state.forumResponses.forEach(async (response) => {
       this.getCharacterAvatar(response.author).then((characterAvatar) => {
-        let entry = { author: "", text: "", avatarURL: "", date: null };
+        let date = new Date(response.date);
+        let entry = {
+          author: "",
+          text: "",
+          avatarURL: "",
+          date: null,
+          uneditedDate: null,
+        };
         entry.author = response.author;
         entry.text = response.responseText;
         entry.avatarURL = characterAvatar;
-        entry.date = response.date;
+        entry.date = date.toUTCString();
+        entry.uneditedDate = response.date;
+        forum.sort(this.sortByDate);
         forum.push(entry);
         this.setState({ completeForum: forum });
+        let newCount = forum.length / this.state.pageSize;
+        newCount = Math.floor(newCount);
+        if (newCount === 0) {
+          newCount = 1;
+        }
+        if (forum.length % this.state.pageSize !== 0) {
+          newCount += 1;
+        }
+        this.setState({ count: newCount });
       });
     });
   }
@@ -382,6 +435,13 @@ class Forum extends Component {
     this.setState({ responseText: data });
   };
 
+  handlePageChange(event, value) {
+    this.setState({ page: value });
+    let forum = this.state.completeForum;
+    forum.sort(this.sortByDate);
+    this.setState({ completeForum: forum });
+  }
+
   onSubmit = async () => {
     await this.ref.current.save();
     const newResponse = {
@@ -411,9 +471,11 @@ class Forum extends Component {
                   alt={this.state.baseForum.author}
                   src={this.state.baseForum.avatarURL}
                 ></Avatar>
-                <Typography variant="h6" className={classes.playerName}>
-                  {this.state.baseForum.author}
-                </Typography>
+                <div className={classes.playerNameDiv}>
+                  <Typography variant="h6" className={classes.playerName}>
+                    {this.state.baseForum.author}
+                  </Typography>
+                </div>
               </Grid>
               <Grid item className={classes.cardTextEditor}>
                 <div>
@@ -426,47 +488,79 @@ class Forum extends Component {
                 </div>
               </Grid>
               <Grid item className={classes.postDate}>
-                <Typography variant="h6">
-                  {this.state.baseForum.date}
+                <Typography variant="subtitle1" className={classes.date}>
+                  <strong>{this.state.baseForum.date}</strong>
+                </Typography>
+                <Typography variant="subtitle1" className={classes.date}>
+                  <strong>Original Post</strong>
                 </Typography>
               </Grid>
             </Grid>
           </CardContent>
         </Card>
         <div>
-          {this.state.completeForum.map((forumData) => (
-            <Card className={classes.card}>
-              <CardContent>
-                <Grid
-                  container
-                  direction="row"
-                  justify="flex-start"
-                  alignItems="flex-start"
-                >
-                  <Grid item className={classes.avatar}>
-                    <Avatar
-                      className={classes.avatarImage}
-                      alt={forumData.author}
-                      src={forumData.avatarURL}
-                    ></Avatar>
-                    <Typography variant="h6" className={classes.playerName}>
-                      {forumData.author}
-                    </Typography>
+          {this.state.completeForum
+            .slice(
+              (this.state.page - 1) * this.state.pageSize,
+              (this.state.page - 1) * this.state.pageSize +
+                this.state.pageSize <
+                this.state.completeForum.length
+                ? (this.state.page - 1) * this.state.pageSize +
+                    this.state.pageSize
+                : this.state.completeForum.length
+            )
+            .map((forumData, index) => (
+              <Card className={classes.card} key={index}>
+                <CardContent>
+                  <Grid
+                    container
+                    direction="row"
+                    justify="flex-start"
+                    alignItems="flex-start"
+                  >
+                    <Grid item className={classes.avatar}>
+                      <Avatar
+                        className={classes.avatarImage}
+                        alt={forumData.author}
+                        src={forumData.avatarURL}
+                      ></Avatar>
+                      <div className={classes.playerNameDiv}>
+                        <Typography variant="h6" className={classes.playerName}>
+                          {forumData.author}
+                        </Typography>
+                      </div>
+                    </Grid>
+                    <Grid item className={classes.cardTextEditor}>
+                      <div>
+                        <MUIRichTextEditor
+                          label="Forum"
+                          defaultValue={forumData.text}
+                          toolbar={false}
+                          readOnly={true}
+                        ></MUIRichTextEditor>
+                      </div>
+                    </Grid>
+                    <Grid item className={classes.postDate}>
+                      <Typography variant="subtitle1" className={classes.date}>
+                        <strong>{forumData.date}</strong>
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item className={classes.cardTextEditor}>
-                    <div>
-                      <MUIRichTextEditor
-                        label="Forum"
-                        defaultValue={forumData.text}
-                        toolbar={false}
-                        readOnly={true}
-                      ></MUIRichTextEditor>
-                    </div>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+        </div>
+        <div>
+          <Pagination
+            className={classes.pagination}
+            count={this.state.count}
+            page={this.state.page}
+            siblingCount={1}
+            boundaryCount={1}
+            variant="outlined"
+            shape="rounded"
+            onChange={(event, value) => this.handlePageChange(event, value)}
+          />
         </div>
         <div>
           <Button
@@ -478,6 +572,15 @@ class Forum extends Component {
             disabled={this.state.raidingCharacters.length < 1}
           >
             Reply
+          </Button>
+          <Button
+            variant="contained"
+            className={classes.button}
+            style={{ margin: 10, outline: 0, marginBottom: 20 }}
+          >
+            <Link to="/forums" className={classes.link}>
+              Forums
+            </Link>
           </Button>
         </div>
         <div>
