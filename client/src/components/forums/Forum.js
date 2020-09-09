@@ -14,7 +14,11 @@ import axios from "axios";
 import Icon from "@material-ui/core/Icon";
 import Button from "@material-ui/core/Button";
 import { getUserInfo } from "../../actions/userInfoActions";
-import { addResponse } from "../../actions/forumActions";
+import {
+  addResponse,
+  deleteResponse,
+  deleteForum,
+} from "../../actions/forumActions";
 import Modal from "@material-ui/core/Modal";
 import Fade from "@material-ui/core/Fade";
 import TextField from "@material-ui/core/TextField";
@@ -30,6 +34,12 @@ import AttachFileIcon from "@material-ui/icons/AttachFile";
 import { storage } from "../../firebase";
 import Pagination from "@material-ui/lab/Pagination";
 import { Link } from "react-router-dom";
+import DeleteIcon from "@material-ui/icons/Delete";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const styles = (theme) => {
   return {
@@ -126,6 +136,12 @@ const styles = (theme) => {
         textDecoration: "none",
       },
     },
+    buttonNotVisible: {
+      display: "none",
+    },
+    deleteButton: {
+      float: "right",
+    },
   };
 };
 
@@ -174,6 +190,7 @@ const deleteUploadedImages = (images) => {
   for (let i = 0; i < images.length; i++) {
     storage.ref(`images/${images[i]}`).delete();
   }
+  return Promise.resolve();
 };
 
 const cardPopverStyles = makeStyles({
@@ -302,6 +319,9 @@ class Forum extends Component {
       count: 1,
       pageSize: 5,
       currentIndex: -1,
+      openConfirmDialog: false,
+      deletedForumRequest: {},
+      deleteRequestWasResponse: false,
     };
   }
 
@@ -343,11 +363,20 @@ class Forum extends Component {
 
     this.getCharacterAvatar(this.state.forum.author).then((characterAvatar) => {
       let date = new Date(this.state.forum.dateCreated);
-      let entry = { author: "", text: "", avatarURL: "", date: null };
+      let entry = {
+        author: "",
+        responseText: "",
+        avatarURL: "",
+        date: null,
+        uploadedImages: [],
+        title: "",
+      };
       entry.author = this.state.forum.author;
-      entry.text = this.state.forum.initialText;
+      entry.responseText = this.state.forum.initialText;
       entry.avatarURL = characterAvatar;
       entry.date = date.toUTCString();
+      entry.uploadedImages = this.state.forum.uploadedImages;
+      entry.title = this.state.forum.title;
       this.setState({ baseForum: entry });
       this.setState({ count: 1 });
     });
@@ -356,16 +385,20 @@ class Forum extends Component {
         let date = new Date(response.date);
         let entry = {
           author: "",
-          text: "",
+          responseText: "",
           avatarURL: "",
           date: null,
           uneditedDate: null,
+          uploadedImages: [],
+          title: "",
         };
         entry.author = response.author;
-        entry.text = response.responseText;
+        entry.responseText = response.responseText;
         entry.avatarURL = characterAvatar;
         entry.date = date.toUTCString();
         entry.uneditedDate = response.date;
+        entry.uploadedImages = response.uploadedImages;
+        entry.title = this.state.forum.title;
         forum.sort(this.sortByDate);
         forum.push(entry);
         this.setState({ completeForum: forum });
@@ -413,7 +446,6 @@ class Forum extends Component {
       let uploadedImages = this.state.uploadedImages;
       uploadedImages.push(file.name);
       this.setState({ uploadedImages: uploadedImages });
-      console.log(this.state.uploadedImages);
     }
   };
 
@@ -453,10 +485,82 @@ class Forum extends Component {
     this.props.addResponse(newResponse);
   };
 
+  deleteForum = async () => {
+    this.setState({ openConfirmDialog: false });
+    this.props.deleteForum(this.state.deletedForumRequest);
+    await deleteUploadedImages(
+      this.state.deletedForumRequest.uploadedImages
+    ).then(() => {
+      window.open("/forums");
+    });
+  };
+
+  deleteForumResponse = async () => {
+    this.setState({ openConfirmDialog: false });
+    this.props.deleteResponse(this.state.deletedForumRequest);
+    await deleteUploadedImages(
+      this.state.deletedForumRequest.uploadedImages
+    ).then(() => {
+      window.location.reload();
+    });
+  };
+
+  handleConfirmDialog = (response, isResponse) => {
+    this.setState({ deleteRequestWasResponse: isResponse });
+    this.setState({ deletedForumRequest: response });
+    this.setState({ openConfirmDialog: true });
+  };
+
+  closeConfirmDialog = () => {
+    this.setState({ deletedForumRequest: {} });
+    this.setState({ openConfirmDialog: false });
+  };
+
+  checkIfUserHasCharacter = (characterName) => {
+    for (let i = 0; i < this.state.raidingCharacters.length; i++) {
+      if (this.state.raidingCharacters[i].characterName === characterName) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   render() {
     const { classes } = this.props;
     return (
       <div>
+        <Dialog
+          open={this.state.openConfirmDialog}
+          onClose={this.closeConfirmDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Are you sure you want to delete the forum/response?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This is not reversable. Any photos that were uploaded to the
+              response/forum will be permanently deleted forever.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.closeConfirmDialog} color="primary">
+              Cancel
+            </Button>
+            <Button
+              onClick={
+                this.state.deleteRequestWasResponse
+                  ? this.deleteForumResponse
+                  : this.deleteForum
+              }
+              color="primary"
+              autoFocus
+            >
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Card className={classes.card}>
           <CardContent>
             <Grid
@@ -481,7 +585,7 @@ class Forum extends Component {
                 <div>
                   <MUIRichTextEditor
                     label="Forum"
-                    defaultValue={this.state.baseForum.text}
+                    defaultValue={this.state.baseForum.responseText}
                     toolbar={false}
                     readOnly={true}
                   ></MUIRichTextEditor>
@@ -494,6 +598,21 @@ class Forum extends Component {
                 <Typography variant="subtitle1" className={classes.date}>
                   <strong>Original Post</strong>
                 </Typography>
+                <div>
+                  <IconButton
+                    aria-label="delete"
+                    onClick={(event) =>
+                      this.handleConfirmDialog(this.state.baseForum, false)
+                    }
+                    className={
+                      this.checkIfUserHasCharacter(this.state.baseForum.author)
+                        ? classes.deleteButton
+                        : classes.buttonNotVisible
+                    }
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </div>
               </Grid>
             </Grid>
           </CardContent>
@@ -534,7 +653,7 @@ class Forum extends Component {
                       <div>
                         <MUIRichTextEditor
                           label="Forum"
-                          defaultValue={forumData.text}
+                          defaultValue={forumData.responseText}
                           toolbar={false}
                           readOnly={true}
                         ></MUIRichTextEditor>
@@ -544,6 +663,21 @@ class Forum extends Component {
                       <Typography variant="subtitle1" className={classes.date}>
                         <strong>{forumData.date}</strong>
                       </Typography>
+                      <div>
+                        <IconButton
+                          aria-label="delete"
+                          onClick={(event) =>
+                            this.handleConfirmDialog(forumData, true)
+                          }
+                          className={
+                            this.checkIfUserHasCharacter(forumData.author)
+                              ? classes.deleteButton
+                              : classes.buttonNotVisible
+                          }
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </div>
                     </Grid>
                   </Grid>
                 </CardContent>
@@ -695,6 +829,7 @@ Forum.propTypes = {
   getUserInfo: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   addResponse: PropTypes.func.isRequired,
+  deleteResponse: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({
   forum: state.forums.forumData,
@@ -703,7 +838,13 @@ const mapStateToProps = (state) => ({
 });
 
 export default compose(
-  connect(mapStateToProps, { getForum, getUserInfo, addResponse }),
+  connect(mapStateToProps, {
+    getForum,
+    getUserInfo,
+    addResponse,
+    deleteResponse,
+    deleteForum,
+  }),
   withStyles(styles, {
     name: "Forum",
   })

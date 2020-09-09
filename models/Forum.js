@@ -41,6 +41,11 @@ const ForumSchema = new Schema({
         type: Date,
         default: Date.now,
       },
+      uploadedImages: [
+        {
+          type: String,
+        },
+      ],
     },
   ],
   uploadedImages: [

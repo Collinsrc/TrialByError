@@ -89,11 +89,50 @@ router.post("/addResponse", (req, res) => {
         threadResponses: {
           author: req.body.author,
           responseText: req.body.responseText,
+          uploadedImages: req.body.uploadedImages,
         },
         uploadedImages: req.body.uploadedImages,
       },
     }
-  ).catch((err) => {
+  )
+    .then((res) => {
+      return res.json("Successfully updated database");
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
+// @route POST api/forums/deleteResponse/
+// @desc removes a response from the threadResponses array of forum
+// @access Public
+router.post("/deleteResponse", (req, res) => {
+  Forum.updateOne(
+    { title: req.body.title },
+    {
+      $pull: {
+        threadResponses: {
+          author: req.body.author,
+          responseText: req.body.responseText,
+          uploadedImages: req.body.uploadedImages,
+        },
+        uploadedImages: { $in: req.body.uploadedImages },
+      },
+    }
+  )
+    .then((res) => {
+      return res.json("Successfully deleted response");
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
+// @route POST api/forums/deleteForum/
+// @desc removes a forum
+// @access Public
+router.post("/deleteForum", (req, res) => {
+  Forum.deleteOne({ title: req.body.title }).catch((err) => {
     return res.json("ERR " + err);
   });
 });
