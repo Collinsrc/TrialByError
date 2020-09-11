@@ -491,7 +491,7 @@ class Forum extends Component {
     await deleteUploadedImages(
       this.state.deletedForumRequest.uploadedImages
     ).then(() => {
-      window.open("/forums");
+      window.location.href = "/forums";
     });
   };
 
@@ -517,6 +517,9 @@ class Forum extends Component {
   };
 
   checkIfUserHasCharacter = (characterName) => {
+    if (this.props.userIsAdmin) {
+      return true;
+    }
     for (let i = 0; i < this.state.raidingCharacters.length; i++) {
       if (this.state.raidingCharacters[i].characterName === characterName) {
         return true;
@@ -835,6 +838,7 @@ const mapStateToProps = (state) => ({
   forum: state.forums.forumData,
   userInfo: state.userInfo.userData,
   auth: state.auth,
+  userIsAdmin: state.userInfo.userIsAdmin,
 });
 
 export default compose(
