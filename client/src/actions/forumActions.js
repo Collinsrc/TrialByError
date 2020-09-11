@@ -72,3 +72,17 @@ export const addResponse = (forumResponse) => async (dispatch) => {
     })
   );
 };
+
+//Delete a response
+export const deleteResponse = (response) => async (dispatch) => {
+  await axios
+    .post("/api/forums/deleteResponse", response)
+    .catch((err) => dispatch({ type: GET_ERRORS, payload: err.response.data }));
+};
+
+//Delete a forum
+export const deleteForum = (forum) => async (dispatch) => {
+  await axios
+    .post("/api/forums/deleteForum", forum)
+    .catch((err) => dispatch({ type: GET_ERRORS, payload: err.response.data }));
+};

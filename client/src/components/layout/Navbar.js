@@ -89,6 +89,11 @@ const NavThemeLoggedIn = (props) => {
               Forums
             </Link>
           </Button>
+          <Button color="inherit" style={{ outline: 0 }}>
+            <Link to={"/profile/:" + props.username} className={classes.link}>
+              Profile
+            </Link>
+          </Button>
           <Button
             color="inherit"
             style={{ outline: 0 }}
@@ -120,7 +125,9 @@ const NavThemeLoggedInAdmin = (props) => {
             </Link>
           </Typography>
           <Button color="inherit" style={{ outline: 0 }}>
-            Administration
+            <Link to="/administration" className={classes.link}>
+              Administration
+            </Link>
           </Button>
           <Button color="inherit" style={{ outline: 0 }}>
             <Link to="/roster" className={classes.link}>
@@ -130,6 +137,11 @@ const NavThemeLoggedInAdmin = (props) => {
           <Button color="inherit" style={{ outline: 0 }}>
             <Link to="/forums" className={classes.link}>
               Forums
+            </Link>
+          </Button>
+          <Button color="inherit" style={{ outline: 0 }}>
+            <Link to={"/profile/:" + props.username} className={classes.link}>
+              Profile
             </Link>
           </Button>
           <Button
@@ -156,12 +168,14 @@ class Navbar extends Component {
         return (
           <NavThemeLoggedInAdmin
             logoutUser={this.props.logoutUser}
+            username={this.props.userInfo.username}
           ></NavThemeLoggedInAdmin>
         );
       } else {
         return (
           <NavThemeLoggedIn
             logoutUser={this.props.logoutUser}
+            username={this.props.userInfo.username}
           ></NavThemeLoggedIn>
         );
       }
