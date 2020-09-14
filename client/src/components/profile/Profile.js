@@ -15,6 +15,9 @@ import axios from "axios";
 import Modal from "@material-ui/core/Modal";
 import Backdrop from "@material-ui/core/Backdrop";
 import Fade from "@material-ui/core/Fade";
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
+import TextField from "@material-ui/core/TextField";
 
 const styles = (theme) => {
   return {
@@ -81,8 +84,55 @@ const styles = (theme) => {
       alignItems: "center",
       justifyContent: "center",
     },
+    detailForum: {
+      width: "100%",
+    },
+    detailForumDiv: {
+      display: "flex",
+      width: "100%",
+    },
+    detailTextField: {
+      margin: 10,
+      width: "100%",
+    },
   };
 };
+
+function equalTo(ref, msg) {
+  return this.test({
+    name: "equalTo",
+    exclusive: false,
+    message: "Passwords must match!",
+    params: {
+      reference: ref.path,
+    },
+    test: function (value) {
+      return value === this.resolve(ref);
+    },
+  });
+}
+
+Yup.addMethod(Yup.string, "equalTo", equalTo);
+
+const EditDetailModalSchema = Yup.object().shape({
+  username: Yup.string()
+    .min(3, "Needs to be 3 characters or more!")
+    .max(50, "Must be below 50 characters!")
+    .required("Required"),
+  password: Yup.string()
+    .min(5, "Needs to be 5 characters or more!")
+    .max(50, "Must be below 50 characters!"),
+  password2: Yup.string().equalTo(Yup.ref("password")),
+  email: Yup.string()
+    .required("Required")
+    .email("Must be a valid email")
+    .max(100, "Cannot be more than 100 characters"),
+  experience: Yup.string()
+    .max(500, "Cannot be more than 500 characters")
+    .required("Required"),
+  about: Yup.string().max(500, "Cannot be more than 500 characters"),
+  realID: Yup.string().max(50, "Cannot be more than 50 characters"),
+});
 
 class Profile extends Component {
   constructor() {
@@ -102,7 +152,6 @@ class Profile extends Component {
     this.getProfileInfo(username).then(() => {
       this.setState({ characters: this.props.profileInfo.characters });
       this.getCharacterBustsAndRecreateCharacterList();
-      console.log(this.props.profileInfo);
     });
   }
 
@@ -254,7 +303,162 @@ class Profile extends Component {
         >
           <Fade in={this.state.editDetailModalOpen}>
             <div className={classes.paper}>
-              <Typography>Detail Edit Modal</Typography>
+              <div className={classes.detailForumDiv}>
+                <Formik
+                  initialValues={{
+                    username: "",
+                    password: "",
+                    password2: "",
+                    email: "",
+                    experience: "",
+                    about: "",
+                    realID: "",
+                  }}
+                  validationSchema={EditDetailModalSchema}
+                  onSubmit={(values) => {
+                    this.onSubmit(values);
+                  }}
+                >
+                  {({ errors, touched, handleChange }) => (
+                    <Form className={classes.detailForum}>
+                      <div>
+                        <Typography variant="h6">Edit Details</Typography>
+                        <br />
+                        <TextField
+                          name="username"
+                          id="username"
+                          label="Username"
+                          helperText={
+                            errors.username && touched.username
+                              ? errors.username
+                              : "Enter a username"
+                          }
+                          error={
+                            errors.username && touched.username ? true : false
+                          }
+                          variant="outlined"
+                          onChange={handleChange}
+                          defaultValue={this.props.profileInfo.username}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          name="email"
+                          id="email"
+                          label="Email"
+                          helperText={
+                            errors.email && touched.email
+                              ? errors.email
+                              : "Enter an email address"
+                          }
+                          error={errors.email && touched.email ? true : false}
+                          variant="outlined"
+                          onChange={handleChange}
+                          defaultValue={this.props.profileInfo.email}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          name="password"
+                          id="password"
+                          label="Password"
+                          type="password"
+                          helperText={
+                            errors.password && touched.password
+                              ? errors.password
+                              : "Enter a password"
+                          }
+                          error={
+                            errors.password && touched.password ? true : false
+                          }
+                          variant="outlined"
+                          onChange={handleChange}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          name="password2"
+                          id="password2"
+                          label="Verify Password"
+                          type="password"
+                          helperText={
+                            errors.password2 && touched.password2
+                              ? errors.password2
+                              : "Enter password verification"
+                          }
+                          error={
+                            errors.password2 && touched.password2 ? true : false
+                          }
+                          variant="outlined"
+                          onChange={handleChange}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          name="realID"
+                          id="realID"
+                          label="BattleTag/RealID"
+                          variant="outlined"
+                          helperText={
+                            errors.realID && touched.realID
+                              ? errors.realID
+                              : "Optional: Enter your BattleTag/RealId"
+                          }
+                          error={errors.realID && touched.realID ? true : false}
+                          onChange={handleChange}
+                          defaultValue={this.props.profileInfo.realID}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          id="experience"
+                          label="Experience"
+                          multiline
+                          rows={5}
+                          variant="outlined"
+                          helperText={
+                            errors.experience && touched.experience
+                              ? errors.experience
+                              : "Enter your raid experience"
+                          }
+                          error={
+                            errors.experience && touched.experience
+                              ? true
+                              : false
+                          }
+                          onChange={handleChange}
+                          defaultValue={this.props.profileInfo.experience}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          id="about"
+                          label="About You"
+                          multiline
+                          rows={5}
+                          variant="outlined"
+                          helperText={
+                            errors.about && touched.about
+                              ? errors.about
+                              : "Optional: Tell us about yourself"
+                          }
+                          defaultValue={this.props.profileInfo.about}
+                          error={errors.about && touched.about ? true : false}
+                          onChange={handleChange}
+                          className={classes.detailTextField}
+                        />
+                      </div>
+                      <div
+                        style={{ display: "flex", justifyContent: "center" }}
+                      >
+                        <Button variant="contained" className={classes.button}>
+                          Save Changes
+                        </Button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
+              </div>
             </div>
           </Fade>
         </Modal>
