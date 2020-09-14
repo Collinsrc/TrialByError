@@ -142,6 +142,14 @@ const styles = (theme) => {
     deleteButton: {
       float: "right",
     },
+    linkToProfile: {
+      textDecoration: "none",
+      color: "inherit",
+      "&:hover": {
+        color: "blue",
+        textDecoration: "none",
+      },
+    },
   };
 };
 
@@ -370,6 +378,7 @@ class Forum extends Component {
         date: null,
         uploadedImages: [],
         title: "",
+        authorUsername: "",
       };
       entry.author = this.state.forum.author;
       entry.responseText = this.state.forum.initialText;
@@ -377,6 +386,7 @@ class Forum extends Component {
       entry.date = date.toUTCString();
       entry.uploadedImages = this.state.forum.uploadedImages;
       entry.title = this.state.forum.title;
+      entry.authorUsername = this.state.forum.authorUsername;
       this.setState({ baseForum: entry });
       this.setState({ count: 1 });
     });
@@ -391,6 +401,7 @@ class Forum extends Component {
           uneditedDate: null,
           uploadedImages: [],
           title: "",
+          authorUsername: "",
         };
         entry.author = response.author;
         entry.responseText = response.responseText;
@@ -399,6 +410,7 @@ class Forum extends Component {
         entry.uneditedDate = response.date;
         entry.uploadedImages = response.uploadedImages;
         entry.title = this.state.forum.title;
+        entry.authorUsername = response.authorUsername;
         forum.sort(this.sortByDate);
         forum.push(entry);
         this.setState({ completeForum: forum });
@@ -406,8 +418,7 @@ class Forum extends Component {
         newCount = Math.floor(newCount);
         if (newCount === 0) {
           newCount = 1;
-        }
-        if (forum.length % this.state.pageSize !== 0) {
+        } else if (forum.length % this.state.pageSize !== 0) {
           newCount += 1;
         }
         this.setState({ count: newCount });
@@ -481,6 +492,7 @@ class Forum extends Component {
       author: this.state.author,
       responseText: this.state.responseText,
       uploadedImages: this.state.uploadedImages,
+      authorUsername: this.props.userInfo.username,
     };
     this.props.addResponse(newResponse);
   };
@@ -580,7 +592,12 @@ class Forum extends Component {
                 ></Avatar>
                 <div className={classes.playerNameDiv}>
                   <Typography variant="h6" className={classes.playerName}>
-                    {this.state.baseForum.author}
+                    <Link
+                      to={"/profile/:" + this.state.baseForum.authorUsername}
+                      className={classes.linkToProfile}
+                    >
+                      {this.state.baseForum.author}
+                    </Link>
                   </Typography>
                 </div>
               </Grid>
@@ -648,7 +665,12 @@ class Forum extends Component {
                       ></Avatar>
                       <div className={classes.playerNameDiv}>
                         <Typography variant="h6" className={classes.playerName}>
-                          {forumData.author}
+                          <Link
+                            to={"/profile/:" + forumData.authorUsername}
+                            className={classes.linkToProfile}
+                          >
+                            {forumData.author}
+                          </Link>
                         </Typography>
                       </div>
                     </Grid>

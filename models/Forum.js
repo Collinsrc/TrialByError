@@ -46,6 +46,10 @@ const ForumSchema = new Schema({
           type: String,
         },
       ],
+      authorUsername: {
+        type: String,
+        required: true,
+      },
     },
   ],
   uploadedImages: [
@@ -53,6 +57,10 @@ const ForumSchema = new Schema({
       type: String,
     },
   ],
+  authorUsername: {
+    type: String,
+    required: true,
+  },
   dateCreated: {
     type: Date,
     default: Date.now,

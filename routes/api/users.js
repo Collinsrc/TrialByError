@@ -120,4 +120,20 @@ router.post("/login", (req, res) => {
   });
 });
 
+// @route GET api/user/getUserInfo/:username
+// @desc get information about a specific user
+// @access Public
+router.get("/getProfileInfo/:username", (req, res) => {
+  User.findOne(
+    { username: req.params.username },
+    { username: 1, characters: 1, email: 1, experience: 1, about: 1, realID: 1 }
+  ).then((user) => {
+    if (user) {
+      return res.json(user);
+    } else {
+      return res.status(400).json("User not found");
+    }
+  });
+});
+
 module.exports = router;
