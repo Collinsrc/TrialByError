@@ -143,4 +143,77 @@ router.get("/getProfileInfo/:username", (req, res) => {
   });
 });
 
+// @route POST api/users/updateUser
+// @desc updates a user
+// @access Public
+router.post("/updateUser", (req, res) => {
+  const email = req.body.email;
+  const username = req.body.username;
+  const currPassword = req.body.currPassword;
+  const initialEmail = req.body.initialEmail;
+  //check if the email exists already if it were changed
+  if (req.body.emailChanged) {
+    User.findOne({ email: email }).then((user) => {
+      if (user) {
+        return res.json({ detailUpdate: "EAE" });
+      }
+    });
+  }
+  //check if password was changed and if the correct current password was entered
+  //if so update the password with a hash and push it in with the rest of the info
+  if (req.body.currPassword !== "") {
+    User.findOne({ username: username }).then((user) => {
+      bcrypt.compare(currPassword, user.password).then((isMatch) => {
+        if (!isMatch) {
+          return res.json({ detailUpdate: "PDNM" });
+        } else {
+          let hashedPassword = "";
+          bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(req.body.password, salt, (err, hash) => {
+              if (err) throw err;
+              hashedPassword = hash;
+            });
+          });
+          User.updateOne(
+            { username: username, email: initialEmail },
+            {
+              $set: {
+                email: req.body.email,
+                password: hashedPassword,
+                realID: req.body.realID,
+                experience: req.body.experience,
+                about: req.body.about,
+              },
+            }
+          )
+            .then((res) => {
+              return res.json("Succesfully updated user");
+            })
+            .catch((err) => {
+              return res.json("ERR " + err);
+            });
+        }
+      });
+    });
+  }
+  //if it makes it to this point update the user without password update
+  User.updateOne(
+    { username: username, email: initialEmail },
+    {
+      $set: {
+        email: req.body.email,
+        realID: req.body.realID,
+        experience: req.body.experience,
+        about: req.body.about,
+      },
+    }
+  )
+    .then((res) => {
+      return res.json("Succesfully updated user");
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
 module.exports = router;

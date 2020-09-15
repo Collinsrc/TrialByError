@@ -49,3 +49,38 @@ export const getProfileInfo = (username) => async (dispatch) => {
       })
     );
 };
+
+//update profile info
+export const updateUser = (updateUser) => async (dispatch) => {
+  await axios
+    .post("/api/users/updateUser/", updateUser)
+    .then((res) => {
+      if (res.data.update === "EAE") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else if (res.data.update === "UAE") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else if (res.data.update === "PDNM") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else {
+        dispatch({
+          type: GET_ERRORS,
+          payload: {},
+        });
+      }
+    })
+    .catch((err) =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      })
+    );
+};

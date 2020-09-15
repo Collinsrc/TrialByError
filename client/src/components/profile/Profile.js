@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import Typography from "@material-ui/core/Typography";
-import { getProfileInfo } from "../../actions/userInfoActions";
+import { getProfileInfo, updateUser } from "../../actions/userInfoActions";
 import compose from "recompose/compose";
 import { withStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
@@ -18,6 +18,8 @@ import Fade from "@material-ui/core/Fade";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import TextField from "@material-ui/core/TextField";
+import Checkbox from "@material-ui/core/Checkbox";
+import { logoutUser } from "../../actions/authActions";
 
 const styles = (theme) => {
   return {
@@ -115,10 +117,15 @@ function equalTo(ref, msg) {
 Yup.addMethod(Yup.string, "equalTo", equalTo);
 
 const EditDetailModalSchema = Yup.object().shape({
-  username: Yup.string()
-    .min(3, "Needs to be 3 characters or more!")
-    .max(50, "Must be below 50 characters!")
-    .required("Required"),
+  currPassword: Yup.string().when(changePasswordEnabled, {
+    then: Yup.string()
+      .required()
+      .min(5, "Needs to be 5 characters or more!")
+      .max(50, "Must be below 50 characters!"),
+    otherwise: Yup.string()
+      .min(5, "Needs to be 5 characters or more!")
+      .max(50, "Must be below 50 characters!"),
+  }),
   password: Yup.string()
     .min(5, "Needs to be 5 characters or more!")
     .max(50, "Must be below 50 characters!"),
@@ -134,6 +141,8 @@ const EditDetailModalSchema = Yup.object().shape({
   realID: Yup.string().max(50, "Cannot be more than 50 characters"),
 });
 
+var changePasswordEnabled = false;
+
 class Profile extends Component {
   constructor() {
     super();
@@ -143,16 +152,24 @@ class Profile extends Component {
       editCharModalOpen: false,
       editDetailModalOpen: false,
       addCharModalOpen: false,
+      checkBoxChecked: false,
     };
+    this._isMounted = false;
   }
 
   componentDidMount() {
+    console.log("Here");
+    this._isMounted = true;
     let username = decodeURIComponent(window.location.pathname);
     username = username.substr(10);
     this.getProfileInfo(username).then(() => {
       this.setState({ characters: this.props.profileInfo.characters });
       this.getCharacterBustsAndRecreateCharacterList();
     });
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   getCharacterBustsAndRecreateCharacterList = () => {
@@ -216,6 +233,58 @@ class Profile extends Component {
   closeEditDetailModal = () => {
     this.setState({ editDetailModalOpen: false });
   };
+
+  checkBoxPushed = () => {
+    if (this.state.checkBoxChecked) {
+      this.setState({ checkBoxChecked: false });
+      changePasswordEnabled = false;
+    } else {
+      this.setState({ checkBoxChecked: true });
+      changePasswordEnabled = true;
+    }
+  };
+
+  onDetailSubmit = (values) => {
+    let emailChanged = false;
+    let passwordChanged = false;
+    if (values.email !== this.props.profileInfo.email) {
+      emailChanged = true;
+    }
+    if (values.currPassword !== "") {
+      passwordChanged = true;
+    }
+    const userUpdate = {
+      initialEmail: this.props.profileInfo.email,
+      username: this.props.profileInfo.username,
+      email: values.email,
+      currPassword: values.currPassword,
+      password: values.password,
+      password2: values.password2,
+      realID: values.realID,
+      experience: values.experience,
+      about: values.about,
+      emailChanged: emailChanged,
+    };
+    this.attemptUserUpdate(userUpdate).then(() => {
+      if (this._isMounted) {
+        this.checkForDetailErrors(emailChanged, passwordChanged);
+      }
+    });
+  };
+
+  async attemptUserUpdate(userUpdate) {
+    await this.props.updateUser(userUpdate);
+    return Promise.resolve();
+  }
+
+  checkForDetailErrors(emailChanged, passwordChanged) {
+    if (this.props.errors.detailUpdate) {
+      console.log(this.props.errors.detailUpdate);
+    } else if (emailChanged || passwordChanged) {
+      this.props.logoutUser();
+      window.location.href = "/login";
+    }
+  }
 
   getColorForCard(characterClass) {
     switch (characterClass) {
@@ -306,41 +375,23 @@ class Profile extends Component {
               <div className={classes.detailForumDiv}>
                 <Formik
                   initialValues={{
-                    username: "",
+                    currPassword: "",
                     password: "",
                     password2: "",
-                    email: "",
-                    experience: "",
-                    about: "",
-                    realID: "",
+                    email: this.props.profileInfo.email,
+                    experience: this.props.profileInfo.experience,
+                    about: this.props.profileInfo.about,
+                    realID: this.props.profileInfo.realID,
                   }}
                   validationSchema={EditDetailModalSchema}
                   onSubmit={(values) => {
-                    this.onSubmit(values);
+                    this.onDetailSubmit(values);
                   }}
                 >
                   {({ errors, touched, handleChange }) => (
                     <Form className={classes.detailForum}>
                       <div>
                         <Typography variant="h6">Edit Details</Typography>
-                        <br />
-                        <TextField
-                          name="username"
-                          id="username"
-                          label="Username"
-                          helperText={
-                            errors.username && touched.username
-                              ? errors.username
-                              : "Enter a username"
-                          }
-                          error={
-                            errors.username && touched.username ? true : false
-                          }
-                          variant="outlined"
-                          onChange={handleChange}
-                          defaultValue={this.props.profileInfo.username}
-                          className={classes.detailTextField}
-                        />
                         <br />
                         <TextField
                           name="email"
@@ -357,16 +408,48 @@ class Profile extends Component {
                           defaultValue={this.props.profileInfo.email}
                           className={classes.detailTextField}
                         />
+                        <div>
+                          <Checkbox
+                            checked={this.state.checkBoxChecked}
+                            inputProps={{ "aria-label": "primary checkbox" }}
+                            onClick={this.checkBoxPushed}
+                          />
+                          <Typography
+                            style={{ display: "inline-block", padding: 15 }}
+                          >
+                            Check to enable password changes
+                          </Typography>
+                        </div>
+                        <TextField
+                          name="currPassword"
+                          id="currPassword"
+                          label="Current Password"
+                          type="password"
+                          helperText={
+                            errors.currPassword && touched.currPassword
+                              ? errors.currPassword
+                              : "Enter your current password"
+                          }
+                          error={
+                            errors.currPassword && touched.currPassword
+                              ? true
+                              : false
+                          }
+                          variant="outlined"
+                          onChange={handleChange}
+                          className={classes.detailTextField}
+                          disabled={!this.state.checkBoxChecked}
+                        />
                         <br />
                         <TextField
                           name="password"
                           id="password"
-                          label="Password"
+                          label="New Password"
                           type="password"
                           helperText={
                             errors.password && touched.password
                               ? errors.password
-                              : "Enter a password"
+                              : "Enter a new password"
                           }
                           error={
                             errors.password && touched.password ? true : false
@@ -374,17 +457,18 @@ class Profile extends Component {
                           variant="outlined"
                           onChange={handleChange}
                           className={classes.detailTextField}
+                          disabled={!this.state.checkBoxChecked}
                         />
                         <br />
                         <TextField
                           name="password2"
                           id="password2"
-                          label="Verify Password"
+                          label="Verify New Password"
                           type="password"
                           helperText={
                             errors.password2 && touched.password2
                               ? errors.password2
-                              : "Enter password verification"
+                              : "Enter new password verification"
                           }
                           error={
                             errors.password2 && touched.password2 ? true : false
@@ -392,6 +476,7 @@ class Profile extends Component {
                           variant="outlined"
                           onChange={handleChange}
                           className={classes.detailTextField}
+                          disabled={!this.state.checkBoxChecked}
                         />
                         <br />
                         <TextField
@@ -451,7 +536,11 @@ class Profile extends Component {
                       <div
                         style={{ display: "flex", justifyContent: "center" }}
                       >
-                        <Button variant="contained" className={classes.button}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          className={classes.button}
+                        >
                           Save Changes
                         </Button>
                       </div>
@@ -604,18 +693,24 @@ class Profile extends Component {
 }
 
 Profile.propTypes = {
+  logoutUser: PropTypes.func.isRequired,
   classes: PropTypes.object.isRequired,
   getProfileInfo: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
+  updateUser: PropTypes.func.isRequired,
+  errors: PropTypes.object.isRequired,
 };
 const mapStateToProps = (state) => ({
   profileInfo: state.userInfo.profileData,
   auth: state.auth,
+  errors: state.errors,
 });
 
 export default compose(
   connect(mapStateToProps, {
     getProfileInfo,
+    updateUser,
+    logoutUser,
   }),
   withStyles(styles, {
     name: "Profile",
