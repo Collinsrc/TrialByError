@@ -55,17 +55,13 @@ export const updateUser = (updateUser) => async (dispatch) => {
   await axios
     .post("/api/users/updateUser/", updateUser)
     .then((res) => {
-      if (res.data.update === "EAE") {
+      console.log(res);
+      if (res.data.detailUpdate === "EAE") {
         dispatch({
           type: GET_ERRORS,
           payload: res.data,
         });
-      } else if (res.data.update === "UAE") {
-        dispatch({
-          type: GET_ERRORS,
-          payload: res.data,
-        });
-      } else if (res.data.update === "PDNM") {
+      } else if (res.data.detailUpdate === "PDNM") {
         dispatch({
           type: GET_ERRORS,
           payload: res.data,

@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../actions/authActions";
+import { getUserInfo } from "../../actions/userInfoActions";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -160,6 +161,13 @@ const NavThemeLoggedInAdmin = (props) => {
 };
 
 class Navbar extends Component {
+  componentDidMount() {
+    const { user } = this.props.auth;
+    if (this.props.auth.isAuthenticated === true) {
+      this.props.getUserInfo(user.username);
+    }
+  }
+
   render() {
     if (this.props.auth.isAuthenticated === false) {
       return <NavTheme></NavTheme>;
@@ -187,6 +195,7 @@ Navbar.propTypes = {
   logoutUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   userInfo: PropTypes.object.isRequired,
+  getUserInfo: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -195,4 +204,4 @@ const mapStateToProps = (state) => ({
   userIsAdmin: state.userInfo.userIsAdmin,
 });
 
-export default connect(mapStateToProps, { logoutUser })(Navbar);
+export default connect(mapStateToProps, { logoutUser, getUserInfo })(Navbar);

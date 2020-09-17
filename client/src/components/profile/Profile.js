@@ -20,6 +20,9 @@ import * as Yup from "yup";
 import TextField from "@material-ui/core/TextField";
 import Checkbox from "@material-ui/core/Checkbox";
 import { logoutUser } from "../../actions/authActions";
+import Snackbar from "@material-ui/core/Snackbar";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 
 const styles = (theme) => {
   return {
@@ -27,7 +30,7 @@ const styles = (theme) => {
       backgroundColor: theme.palette.secondary.main,
       color: "#ffffff",
       marginBottom: 16,
-      marginLeft: 16,
+      marginLeft: 10,
     },
     dividers: {
       variant: "middle",
@@ -117,18 +120,27 @@ function equalTo(ref, msg) {
 Yup.addMethod(Yup.string, "equalTo", equalTo);
 
 const EditDetailModalSchema = Yup.object().shape({
-  currPassword: Yup.string().when(changePasswordEnabled, {
+  passwordEnabled: Yup.boolean(),
+  currPassword: Yup.string().when("passwordEnabled", {
+    is: true,
     then: Yup.string()
-      .required()
+      .required("Required")
       .min(5, "Needs to be 5 characters or more!")
       .max(50, "Must be below 50 characters!"),
     otherwise: Yup.string()
       .min(5, "Needs to be 5 characters or more!")
       .max(50, "Must be below 50 characters!"),
   }),
-  password: Yup.string()
-    .min(5, "Needs to be 5 characters or more!")
-    .max(50, "Must be below 50 characters!"),
+  password: Yup.string().when("passwordEnabled", {
+    is: true,
+    then: Yup.string()
+      .required("Required")
+      .min(5, "Needs to be 5 characters or more!")
+      .max(50, "Must be below 50 characters!"),
+    otherwise: Yup.string()
+      .min(5, "Needs to be 5 characters or more!")
+      .max(50, "Must be below 50 characters!"),
+  }),
   password2: Yup.string().equalTo(Yup.ref("password")),
   email: Yup.string()
     .required("Required")
@@ -141,8 +153,6 @@ const EditDetailModalSchema = Yup.object().shape({
   realID: Yup.string().max(50, "Cannot be more than 50 characters"),
 });
 
-var changePasswordEnabled = false;
-
 class Profile extends Component {
   constructor() {
     super();
@@ -153,6 +163,8 @@ class Profile extends Component {
       editDetailModalOpen: false,
       addCharModalOpen: false,
       checkBoxChecked: false,
+      errorMessage: "",
+      openErrorSnackbar: false,
     };
     this._isMounted = false;
   }
@@ -234,13 +246,13 @@ class Profile extends Component {
     this.setState({ editDetailModalOpen: false });
   };
 
-  checkBoxPushed = () => {
+  checkBoxPushed = (setFieldValue) => {
     if (this.state.checkBoxChecked) {
       this.setState({ checkBoxChecked: false });
-      changePasswordEnabled = false;
+      setFieldValue("passwordEnabled", false);
     } else {
       this.setState({ checkBoxChecked: true });
-      changePasswordEnabled = true;
+      setFieldValue("passwordEnabled", true);
     }
   };
 
@@ -279,12 +291,26 @@ class Profile extends Component {
 
   checkForDetailErrors(emailChanged, passwordChanged) {
     if (this.props.errors.detailUpdate) {
-      console.log(this.props.errors.detailUpdate);
+      //console.log(this.props.errors.detailUpdate);
+      if (this.props.errors.detailUpdate === "PDNM") {
+        this.setState({ errorMessage: "Current password does not match!" });
+      } else if (this.props.errors.detailUpdate === "EAE") {
+        this.setState({ errorMessage: "Email already exists in database!" });
+      }
+      this.setState({ openErrorSnackbar: true });
     } else if (emailChanged || passwordChanged) {
       this.props.logoutUser();
       window.location.href = "/login";
     }
   }
+
+  handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    this.setState({ openErrorSnackbar: false });
+  };
 
   getColorForCard(characterClass) {
     switch (characterClass) {
@@ -322,6 +348,32 @@ class Profile extends Component {
     const { user } = this.props.auth;
     return (
       <div>
+        <Snackbar
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "center",
+          }}
+          open={this.state.openErrorSnackbar}
+          autoHideDuration={6000}
+          disableWindowBlurListener={false}
+          onClose={this.handleSnackbarClose}
+          message={this.state.errorMessage}
+          action={
+            <React.Fragment>
+              <Button color="secondary" size="small" onClick={this.handleClose}>
+                CLOSE
+              </Button>
+              <IconButton
+                size="small"
+                aria-label="close"
+                color="inherit"
+                onClick={this.handleClose}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </React.Fragment>
+          }
+        />
         <Modal
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
@@ -388,7 +440,7 @@ class Profile extends Component {
                     this.onDetailSubmit(values);
                   }}
                 >
-                  {({ errors, touched, handleChange }) => (
+                  {({ errors, touched, handleChange, setFieldValue }) => (
                     <Form className={classes.detailForum}>
                       <div>
                         <Typography variant="h6">Edit Details</Typography>
@@ -412,7 +464,7 @@ class Profile extends Component {
                           <Checkbox
                             checked={this.state.checkBoxChecked}
                             inputProps={{ "aria-label": "primary checkbox" }}
-                            onClick={this.checkBoxPushed}
+                            onClick={() => this.checkBoxPushed(setFieldValue)}
                           />
                           <Typography
                             style={{ display: "inline-block", padding: 15 }}
@@ -623,7 +675,7 @@ class Profile extends Component {
                   }
                   onClick={this.openEditCharacterModal}
                 >
-                  Edit Character
+                  Edit Character's Spec
                 </Button>
                 <Button
                   variant="contained"

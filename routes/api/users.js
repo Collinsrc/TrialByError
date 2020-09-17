@@ -151,8 +151,8 @@ router.post("/updateUser", (req, res) => {
   const username = req.body.username;
   const currPassword = req.body.currPassword;
   const initialEmail = req.body.initialEmail;
-  //check if the email exists already if it were changed
-  if (req.body.emailChanged) {
+  //check if the email exists already if it were changed AND the password was not changed
+  if (req.body.emailChanged && req.body.currPassword === "") {
     User.findOne({ email: email }).then((user) => {
       if (user) {
         return res.json({ detailUpdate: "EAE" });
@@ -161,59 +161,67 @@ router.post("/updateUser", (req, res) => {
   }
   //check if password was changed and if the correct current password was entered
   //if so update the password with a hash and push it in with the rest of the info
-  if (req.body.currPassword !== "") {
+  else if (req.body.currPassword !== "") {
+    //check if email had been changed
+    User.findOne({ email: email }).then((user) => {
+      if (user) {
+        return res.json({ detailUpdate: "EAE" });
+      }
+    });
     User.findOne({ username: username }).then((user) => {
       bcrypt.compare(currPassword, user.password).then((isMatch) => {
         if (!isMatch) {
           return res.json({ detailUpdate: "PDNM" });
         } else {
-          let hashedPassword = "";
-          bcrypt.genSalt(10, (err, salt) => {
-            bcrypt.hash(req.body.password, salt, (err, hash) => {
-              if (err) throw err;
-              hashedPassword = hash;
+          bcrypt.genSalt(10, function (err, salt) {
+            bcrypt.hash(req.body.password, salt, function (err, hash) {
+              if (err) {
+                throw err;
+              } else {
+                User.updateOne(
+                  { username: username, email: initialEmail },
+                  {
+                    $set: {
+                      email: req.body.email,
+                      password: hash,
+                      realID: req.body.realID,
+                      experience: req.body.experience,
+                      about: req.body.about,
+                    },
+                  }
+                )
+                  .then((res) => {
+                    return res.json("Succesfully updated user");
+                  })
+                  .catch((err) => {
+                    return res.json("ERR " + err);
+                  });
+              }
             });
           });
-          User.updateOne(
-            { username: username, email: initialEmail },
-            {
-              $set: {
-                email: req.body.email,
-                password: hashedPassword,
-                realID: req.body.realID,
-                experience: req.body.experience,
-                about: req.body.about,
-              },
-            }
-          )
-            .then((res) => {
-              return res.json("Succesfully updated user");
-            })
-            .catch((err) => {
-              return res.json("ERR " + err);
-            });
         }
       });
     });
+  } else {
+    //if it makes it to this point update the user without password update
+    User.updateOne(
+      { username: username, email: initialEmail },
+      {
+        $set: {
+          email: req.body.email,
+          realID: req.body.realID,
+          experience: req.body.experience,
+          about: req.body.about,
+        },
+      }
+    )
+      .then((res) => {
+        return res.json("Succesfully updated user");
+      })
+      .catch((err) => {
+        return res.json("ERR " + err);
+      });
   }
-  //if it makes it to this point update the user without password update
-  User.updateOne(
-    { username: username, email: initialEmail },
-    {
-      $set: {
-        email: req.body.email,
-        realID: req.body.realID,
-        experience: req.body.experience,
-        about: req.body.about,
-      },
-    }
-  )
-    .then((res) => {
-      return res.json("Succesfully updated user");
-    })
-    .catch((err) => {
-      return res.json("ERR " + err);
-    });
 });
 
 module.exports = router;
