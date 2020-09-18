@@ -1,7 +1,11 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import Typography from "@material-ui/core/Typography";
-import { getProfileInfo, updateUser } from "../../actions/userInfoActions";
+import {
+  getProfileInfo,
+  updateUser,
+  updateCharacterSpec,
+} from "../../actions/userInfoActions";
 import compose from "recompose/compose";
 import { withStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
@@ -23,6 +27,58 @@ import { logoutUser } from "../../actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import MenuItem from "@material-ui/core/MenuItem";
+
+const classesAndSpecs = [
+  {
+    classname: "Death Knight",
+    spec: ["Blood", "Frost", "Unholy"],
+  },
+  {
+    classname: "Demon Hunter",
+    spec: ["Havoc", "Vengeance"],
+  },
+  {
+    classname: "Druid",
+    spec: ["Balance", "Feral", "Guardian", "Restoration"],
+  },
+  {
+    classname: "Hunter",
+    spec: ["Beast Mastery", "Marksmanship", "Survival"],
+  },
+  {
+    classname: "Mage",
+    spec: ["Arcane", "Frost", "Fire"],
+  },
+  {
+    classname: "Monk",
+    spec: ["Brewmaster", "Mistweaver", "Windwalker"],
+  },
+  {
+    classname: "Paladin",
+    spec: ["Holy", "Protection", "Retribution"],
+  },
+  {
+    classname: "Priest",
+    spec: ["Discipline", "Holy", "Shadow"],
+  },
+  {
+    classname: "Rogue",
+    spec: ["Assassination", "Outlaw", "Subtlety"],
+  },
+  {
+    classname: "Shaman",
+    spec: ["Elemental", "Enhancement", "Restoration"],
+  },
+  {
+    classname: "Warlock",
+    spec: ["Affliction", "Demonology", "Destruction"],
+  },
+  {
+    classname: "Warrior",
+    spec: ["Arms", "Fury", "Protection"],
+  },
+];
 
 const styles = (theme) => {
   return {
@@ -100,6 +156,14 @@ const styles = (theme) => {
       margin: 10,
       width: "100%",
     },
+    changeCharacterSpecDiv: {
+      width: "100%",
+    },
+    characterInformationPane: {
+      textAlign: "center",
+      marginTop: 50,
+      marginBottom: 50,
+    },
   };
 };
 
@@ -165,6 +229,9 @@ class Profile extends Component {
       checkBoxChecked: false,
       errorMessage: "",
       openErrorSnackbar: false,
+      characterSelected: "",
+      specSelection: "",
+      characterDetails: {},
     };
     this._isMounted = false;
   }
@@ -246,6 +313,18 @@ class Profile extends Component {
     this.setState({ editDetailModalOpen: false });
   };
 
+  handleChangeSelectCharacter = (e) => {
+    this.setState({ characterSelected: e.target.value });
+    var character = this.state.characters.find((character) => {
+      return character.characterName === e.target.value;
+    });
+    this.setState({ characterDetails: character });
+  };
+
+  handleChangeSpec = (e) => {
+    this.setState({ specSelection: e.target.value });
+  };
+
   checkBoxPushed = (setFieldValue) => {
     if (this.state.checkBoxChecked) {
       this.setState({ checkBoxChecked: false });
@@ -282,6 +361,15 @@ class Profile extends Component {
         this.checkForDetailErrors(emailChanged, passwordChanged);
       }
     });
+  };
+
+  onCharacterSpecSubmit = () => {
+    let updatedCharacter = {
+      username: this.props.profileInfo.username,
+      characterName: this.state.characterSelected.characterName,
+      spec: this.state.specSelection,
+    };
+    this.props.updateCharacterSpec(updatedCharacter);
   };
 
   async attemptUserUpdate(userUpdate) {
@@ -406,7 +494,86 @@ class Profile extends Component {
         >
           <Fade in={this.state.editCharModalOpen}>
             <div className={classes.paper}>
-              <Typography>Char Edit Modal</Typography>
+              <div className={classes.changeCharacterSpecDiv}>
+                <Typography variant="h6">Edit Character Spec</Typography>
+                <br />
+                <TextField
+                  select
+                  required
+                  helperText="Select a character"
+                  id="character"
+                  name="character"
+                  label="Character selection..."
+                  variant="outlined"
+                  className={classes.detailTextField}
+                  onChange={this.handleChangeSelectCharacter}
+                  value={this.state.characterSelected}
+                >
+                  {this.state.characters.map((option) => (
+                    <MenuItem
+                      key={option.characterName}
+                      value={option.characterName}
+                    >
+                      {option.characterName}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <br />
+                <TextField
+                  select
+                  required
+                  label="Spec"
+                  value={this.state.specSelection}
+                  onChange={this.handleChangeSpec}
+                  variant="outlined"
+                  helperText="Select a spec"
+                  className={classes.detailTextField}
+                  id="specSelection"
+                  name="specSelection"
+                >
+                  {classesAndSpecs
+                    .filter(
+                      (classname) =>
+                        classname.classname ===
+                        this.state.characterDetails.characterClass
+                    )
+                    .map((filteredClassName) =>
+                      filteredClassName.spec.map((specOption) => (
+                        <MenuItem key={specOption} value={specOption}>
+                          {specOption}
+                        </MenuItem>
+                      ))
+                    )}
+                </TextField>
+                <div className={classes.characterInformationPane}>
+                  <Typography variant="h6">
+                    {this.state.characterSelected}
+                  </Typography>
+                  <Typography variant="h6">
+                    {this.state.specSelection !== ""
+                      ? this.state.specSelection
+                      : this.state.characterDetails.spec}{" "}
+                    {this.state.characterDetails.characterClass}
+                  </Typography>
+                </div>
+                <div className={classes.characterInformationPane}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    className={classes.button}
+                    onClick={this.onCharacterSpecSubmit}
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="contained"
+                    className={classes.button}
+                    onClick={this.closeEditCharacterModal}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
             </div>
           </Fade>
         </Modal>
@@ -595,6 +762,13 @@ class Profile extends Component {
                         >
                           Save Changes
                         </Button>
+                        <Button
+                          variant="contained"
+                          className={classes.button}
+                          onClick={this.closeEditDetailModal}
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </Form>
                   )}
@@ -763,6 +937,7 @@ export default compose(
     getProfileInfo,
     updateUser,
     logoutUser,
+    updateCharacterSpec,
   }),
   withStyles(styles, {
     name: "Profile",

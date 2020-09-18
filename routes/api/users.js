@@ -156,6 +156,24 @@ router.post("/updateUser", (req, res) => {
     User.findOne({ email: email }).then((user) => {
       if (user) {
         return res.json({ detailUpdate: "EAE" });
+      } else {
+        User.updateOne(
+          { username: username, email: initialEmail },
+          {
+            $set: {
+              email: req.body.email,
+              realID: req.body.realID,
+              experience: req.body.experience,
+              about: req.body.about,
+            },
+          }
+        )
+          .then((res) => {
+            return res.json("Succesfully updated user");
+          })
+          .catch((err) => {
+            return res.json("ERR " + err);
+          });
       }
     });
   }
@@ -166,41 +184,42 @@ router.post("/updateUser", (req, res) => {
     User.findOne({ email: email }).then((user) => {
       if (user) {
         return res.json({ detailUpdate: "EAE" });
-      }
-    });
-    User.findOne({ username: username }).then((user) => {
-      bcrypt.compare(currPassword, user.password).then((isMatch) => {
-        if (!isMatch) {
-          return res.json({ detailUpdate: "PDNM" });
-        } else {
-          bcrypt.genSalt(10, function (err, salt) {
-            bcrypt.hash(req.body.password, salt, function (err, hash) {
-              if (err) {
-                throw err;
-              } else {
-                User.updateOne(
-                  { username: username, email: initialEmail },
-                  {
-                    $set: {
-                      email: req.body.email,
-                      password: hash,
-                      realID: req.body.realID,
-                      experience: req.body.experience,
-                      about: req.body.about,
-                    },
+      } else {
+        User.findOne({ username: username }).then((user) => {
+          bcrypt.compare(currPassword, user.password).then((isMatch) => {
+            if (!isMatch) {
+              return res.json({ detailUpdate: "PDNM" });
+            } else {
+              bcrypt.genSalt(10, function (err, salt) {
+                bcrypt.hash(req.body.password, salt, function (err, hash) {
+                  if (err) {
+                    throw err;
+                  } else {
+                    User.updateOne(
+                      { username: username, email: initialEmail },
+                      {
+                        $set: {
+                          email: req.body.email,
+                          password: hash,
+                          realID: req.body.realID,
+                          experience: req.body.experience,
+                          about: req.body.about,
+                        },
+                      }
+                    )
+                      .then((res) => {
+                        return res.json("Succesfully updated user");
+                      })
+                      .catch((err) => {
+                        return res.json("ERR " + err);
+                      });
                   }
-                )
-                  .then((res) => {
-                    return res.json("Succesfully updated user");
-                  })
-                  .catch((err) => {
-                    return res.json("ERR " + err);
-                  });
-              }
-            });
+                });
+              });
+            }
           });
-        }
-      });
+        });
+      }
     });
   } else {
     //if it makes it to this point update the user without password update
@@ -222,6 +241,27 @@ router.post("/updateUser", (req, res) => {
         return res.json("ERR " + err);
       });
   }
+});
+
+// @route POST api/user/updateCharacterSpec
+// @desc update a users character
+// @access Public
+router.get("/updateCharacterSpec", (req, res) => {
+  User.updateOne(
+    {
+      username: req.body.username,
+      "characters.characterName": req.body.characterName,
+    },
+    {
+      $set: { "characters.$.spec": req.body.spec },
+    }
+  )
+    .then((res) => {
+      return res.json("Succesfully updated user");
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
 });
 
 module.exports = router;

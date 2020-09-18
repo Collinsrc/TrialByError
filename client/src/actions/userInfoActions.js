@@ -80,3 +80,14 @@ export const updateUser = (updateUser) => async (dispatch) => {
       })
     );
 };
+
+export const updateCharacterSpec = (character) => async (dispatch) => {
+  await axios
+    .post("/api/users/updateCharacterSpec/", character)
+    .catch((err) => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      });
+    });
+};
