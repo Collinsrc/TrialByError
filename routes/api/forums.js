@@ -98,7 +98,7 @@ router.post("/addResponse", (req, res) => {
       },
     }
   )
-    .then((res) => {
+    .then(() => {
       return res.json("Successfully updated database");
     })
     .catch((err) => {
@@ -124,7 +124,7 @@ router.post("/deleteResponse", (req, res) => {
       },
     }
   )
-    .then((res) => {
+    .then(() => {
       return res.json("Successfully deleted response");
     })
     .catch((err) => {

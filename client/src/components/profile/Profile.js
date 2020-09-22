@@ -4,7 +4,8 @@ import Typography from "@material-ui/core/Typography";
 import {
   getProfileInfo,
   updateUser,
-  updateCharacterSpec,
+  updateCharacter,
+  addCharacter,
 } from "../../actions/userInfoActions";
 import compose from "recompose/compose";
 import { withStyles } from "@material-ui/core/styles";
@@ -77,6 +78,21 @@ const classesAndSpecs = [
   {
     classname: "Warrior",
     spec: ["Arms", "Fury", "Protection"],
+  },
+];
+
+const roles = [
+  {
+    value: "Tank",
+    label: "Tank",
+  },
+  {
+    value: "Healer",
+    label: "Healer",
+  },
+  {
+    value: "DPS",
+    label: "DPS",
   },
 ];
 
@@ -217,6 +233,12 @@ const EditDetailModalSchema = Yup.object().shape({
   realID: Yup.string().max(50, "Cannot be more than 50 characters"),
 });
 
+const AddCharacterModalSchema = Yup.object().shape({
+  characterName: Yup.string()
+    .required("Required")
+    .max(25, "Cannot be more than 25 characters"),
+});
+
 class Profile extends Component {
   constructor() {
     super();
@@ -232,12 +254,13 @@ class Profile extends Component {
       characterSelected: "",
       specSelection: "",
       characterDetails: {},
+      roleSelection: "",
+      classSelection: "",
     };
     this._isMounted = false;
   }
 
   componentDidMount() {
-    console.log("Here");
     this._isMounted = true;
     let username = decodeURIComponent(window.location.pathname);
     username = username.substr(10);
@@ -265,7 +288,6 @@ class Profile extends Component {
         };
         characters.push(characterNew);
         this.setState({ characters: characters });
-        console.log(this.state.characters);
       });
     });
   };
@@ -302,11 +324,21 @@ class Profile extends Component {
   };
 
   closeAddCharacterModal = () => {
-    this.setState({ addCharModalOpen: false });
+    this.setState({
+      addCharModalOpen: false,
+      classSelection: "",
+      specSelection: "",
+      roleSelection: "",
+    });
   };
 
   closeEditCharacterModal = () => {
-    this.setState({ editCharModalOpen: false });
+    this.setState({
+      editCharModalOpen: false,
+      classSelection: "",
+      specSelection: "",
+      roleSelection: "",
+    });
   };
 
   closeEditDetailModal = () => {
@@ -323,6 +355,18 @@ class Profile extends Component {
 
   handleChangeSpec = (e) => {
     this.setState({ specSelection: e.target.value });
+  };
+
+  handleChangeRole = (e) => {
+    this.setState({ roleSelection: e.target.value });
+  };
+
+  handleChangeName = (e) => {
+    this.setState({ characterName: e.target.value });
+  };
+
+  handleChangeClass = (e) => {
+    this.setState({ classSelection: e.target.value });
   };
 
   checkBoxPushed = (setFieldValue) => {
@@ -358,18 +402,36 @@ class Profile extends Component {
     };
     this.attemptUserUpdate(userUpdate).then(() => {
       if (this._isMounted) {
-        this.checkForDetailErrors(emailChanged, passwordChanged);
+        this.checkForDetailErrors(emailChanged, passwordChanged, false);
       }
     });
   };
 
-  onCharacterSpecSubmit = () => {
+  onCharacterUpdateSubmit = () => {
     let updatedCharacter = {
       username: this.props.profileInfo.username,
       characterName: this.state.characterSelected.characterName,
       spec: this.state.specSelection,
+      role: this.state.roleSelection,
     };
-    this.props.updateCharacterSpec(updatedCharacter);
+    this.props.updateCharacter(updatedCharacter).then(() => {
+      window.location.reload();
+    });
+  };
+
+  onCharacterAddSubmit = (values) => {
+    let newCharacter = {
+      username: this.props.profileInfo.username,
+      characterName: values.characterName,
+      spec: this.state.specSelection,
+      role: this.state.roleSelection,
+      class: this.state.classSelection,
+    };
+    this.attemptCharacterAdd(newCharacter).then(() => {
+      if (this._isMounted) {
+        this.checkForDetailErrors(false, false, true);
+      }
+    });
   };
 
   async attemptUserUpdate(userUpdate) {
@@ -377,18 +439,29 @@ class Profile extends Component {
     return Promise.resolve();
   }
 
-  checkForDetailErrors(emailChanged, passwordChanged) {
+  async attemptCharacterAdd(newCharacter) {
+    await this.props.addCharacter(newCharacter);
+    return Promise.resolve();
+  }
+
+  checkForDetailErrors(emailChanged, passwordChanged, characterAdded) {
     if (this.props.errors.detailUpdate) {
       //console.log(this.props.errors.detailUpdate);
       if (this.props.errors.detailUpdate === "PDNM") {
         this.setState({ errorMessage: "Current password does not match!" });
       } else if (this.props.errors.detailUpdate === "EAE") {
         this.setState({ errorMessage: "Email already exists in database!" });
+      } else if (this.props.errors.detailUpdate === "CAE") {
+        this.setState({
+          errorMessage: "Character already exists in database!",
+        });
       }
       this.setState({ openErrorSnackbar: true });
     } else if (emailChanged || passwordChanged) {
       this.props.logoutUser();
       window.location.href = "/login";
+    } else if (characterAdded) {
+      window.location.reload();
     }
   }
 
@@ -466,24 +539,6 @@ class Profile extends Component {
           aria-labelledby="transition-modal-title"
           aria-describedby="transition-modal-description"
           className={classes.modal}
-          open={this.state.addCharModalOpen}
-          onClose={this.closeAddCharacterModal}
-          closeAfterTransition
-          BackdropComponent={Backdrop}
-          BackdropProps={{
-            timeout: 500,
-          }}
-        >
-          <Fade in={this.state.addCharModalOpen}>
-            <div className={classes.paper}>
-              <Typography>Char Add Modal</Typography>
-            </div>
-          </Fade>
-        </Modal>
-        <Modal
-          aria-labelledby="transition-modal-title"
-          aria-describedby="transition-modal-description"
-          className={classes.modal}
           open={this.state.editCharModalOpen}
           onClose={this.closeEditCharacterModal}
           closeAfterTransition
@@ -515,6 +570,25 @@ class Profile extends Component {
                       value={option.characterName}
                     >
                       {option.characterName}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <br />
+                <TextField
+                  select
+                  required
+                  label="Role"
+                  value={this.state.roleSelection}
+                  onChange={this.handleChangeRole}
+                  variant="outlined"
+                  helperText="Select a role"
+                  className={classes.detailTextField}
+                  id="roleSelection"
+                  name="roleSelection"
+                >
+                  {roles.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -555,13 +629,18 @@ class Profile extends Component {
                       : this.state.characterDetails.spec}{" "}
                     {this.state.characterDetails.characterClass}
                   </Typography>
+                  <Typography variant="h6">
+                    {this.state.roleSelection !== ""
+                      ? this.state.roleSelection
+                      : this.state.characterDetails.role}
+                  </Typography>
                 </div>
                 <div className={classes.characterInformationPane}>
                   <Button
                     type="submit"
                     variant="contained"
                     className={classes.button}
-                    onClick={this.onCharacterSpecSubmit}
+                    onClick={this.onCharacterUpdateSubmit}
                   >
                     Save Changes
                   </Button>
@@ -573,6 +652,145 @@ class Profile extends Component {
                     Cancel
                   </Button>
                 </div>
+              </div>
+            </div>
+          </Fade>
+        </Modal>
+        <Modal
+          aria-labelledby="transition-modal-title"
+          aria-describedby="transition-modal-description"
+          className={classes.modal}
+          open={this.state.addCharModalOpen}
+          onClose={this.closeAddCharacterModal}
+          closeAfterTransition
+          BackdropComponent={Backdrop}
+          BackdropProps={{
+            timeout: 500,
+          }}
+        >
+          <Fade in={this.state.addCharModalOpen}>
+            <div className={classes.paper}>
+              <div className={classes.detailForumDiv}>
+                <Formik
+                  initialValues={{
+                    characterName: "",
+                  }}
+                  validationSchema={AddCharacterModalSchema}
+                  onSubmit={(values) => {
+                    this.onCharacterAddSubmit(values);
+                  }}
+                >
+                  {({ errors, touched, handleChange }) => (
+                    <Form className={classes.detailForum}>
+                      <div>
+                        <Typography variant="h6">Add Character</Typography>
+                        <br />
+                        <TextField
+                          name="characterName"
+                          id="characterName"
+                          label="Character Name"
+                          helperText={
+                            errors.characterName && touched.characterName
+                              ? errors.characterName
+                              : "Enter a character name"
+                          }
+                          error={
+                            errors.characterName && touched.characterName
+                              ? true
+                              : false
+                          }
+                          variant="outlined"
+                          onChange={handleChange}
+                          className={classes.detailTextField}
+                        />
+                        <br />
+                        <TextField
+                          select
+                          required
+                          label="Role"
+                          value={this.state.roleSelection}
+                          onChange={this.handleChangeRole}
+                          variant="outlined"
+                          helperText="Select a role"
+                          className={classes.detailTextField}
+                          id="roleSelection"
+                          name="roleSelection"
+                        >
+                          {roles.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        <br />
+                        <TextField
+                          select
+                          required
+                          label="Class"
+                          value={this.state.classSelection}
+                          onChange={this.handleChangeClass}
+                          variant="outlined"
+                          helperText="Select a class"
+                          className={classes.detailTextField}
+                          id="classSelection"
+                          name="classSelection"
+                        >
+                          {classesAndSpecs.map((option) => (
+                            <MenuItem
+                              key={option.classname}
+                              value={option.classname}
+                            >
+                              {option.classname}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                        <br />
+                        <TextField
+                          select
+                          required
+                          label="Spec"
+                          value={this.state.specSelection}
+                          onChange={this.handleChangeSpec}
+                          variant="outlined"
+                          helperText="Select a spec"
+                          className={classes.detailTextField}
+                          id="specSelection"
+                          name="specSelection"
+                        >
+                          {classesAndSpecs
+                            .filter(
+                              (classname) =>
+                                classname.classname ===
+                                this.state.classSelection
+                            )
+                            .map((filteredClassName) =>
+                              filteredClassName.spec.map((specOption) => (
+                                <MenuItem key={specOption} value={specOption}>
+                                  {specOption}
+                                </MenuItem>
+                              ))
+                            )}
+                        </TextField>
+                      </div>
+                      <div className={classes.characterInformationPane}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          className={classes.button}
+                        >
+                          Add Character
+                        </Button>
+                        <Button
+                          variant="contained"
+                          className={classes.button}
+                          onClick={this.closeAddCharacterModal}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </Form>
+                  )}
+                </Formik>
               </div>
             </div>
           </Fade>
@@ -937,7 +1155,8 @@ export default compose(
     getProfileInfo,
     updateUser,
     logoutUser,
-    updateCharacterSpec,
+    updateCharacter,
+    addCharacter,
   }),
   withStyles(styles, {
     name: "Profile",

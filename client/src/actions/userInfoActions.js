@@ -55,7 +55,6 @@ export const updateUser = (updateUser) => async (dispatch) => {
   await axios
     .post("/api/users/updateUser/", updateUser)
     .then((res) => {
-      console.log(res);
       if (res.data.detailUpdate === "EAE") {
         dispatch({
           type: GET_ERRORS,
@@ -81,9 +80,31 @@ export const updateUser = (updateUser) => async (dispatch) => {
     );
 };
 
-export const updateCharacterSpec = (character) => async (dispatch) => {
+export const updateCharacter = (character) => async (dispatch) => {
+  await axios.post("/api/users/updateCharacter/", character).catch((err) => {
+    dispatch({
+      type: GET_ERRORS,
+      payload: err.response.data,
+    });
+  });
+};
+
+export const addCharacter = (character) => async (dispatch) => {
   await axios
-    .post("/api/users/updateCharacterSpec/", character)
+    .post("/api/users/addCharacter/", character)
+    .then((res) => {
+      if (res.data.detailUpdate === "CAE") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else {
+        dispatch({
+          type: GET_ERRORS,
+          payload: {},
+        });
+      }
+    })
     .catch((err) => {
       dispatch({
         type: GET_ERRORS,

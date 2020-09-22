@@ -4,7 +4,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 // Load input validation
-const validateRegisterInput = require("../../validation/register");
 const validateLoginInput = require("../../validation/login");
 // Load User model
 const User = require("../../models/User");
@@ -13,43 +12,51 @@ const User = require("../../models/User");
 // @desc Register user
 // @access Public
 router.post("/register", (req, res) => {
-  // Form validation
-  const { errors, isValid } = validateRegisterInput(req.body);
-  // Check validation
-  if (!isValid) {
-    return res.status(400).json(errors);
-  }
   User.findOne({ email: req.body.email }).then((user) => {
     if (user) {
       return res.status(400).json({ email: "Email already exists" });
     } else {
-      const newUser = new User({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        characters: [
-          {
-            characterName: req.body.characterName,
-            role: req.body.role,
-            class: req.body.class,
-            spec: req.body.spec,
-          },
-        ],
-        experience: req.body.experience,
-        about: req.body.about,
-        realID: req.body.realID,
-      });
-      // Hash password before saving in database
-      bcrypt.genSalt(10, (err, salt) => {
-        bcrypt.hash(newUser.password, salt, (err, hash) => {
-          if (err) throw err;
-          newUser.password = hash;
-          newUser
-            .save()
-            .then((user) => res.json(user))
-            .catch((err) => console.log(err));
-        });
-      });
+      User.findOne({ "characters.characterName": req.body.characterName }).then(
+        (user) => {
+          if (user) {
+            return res.json({ register: "CAE" });
+          } else {
+            User.findOne({ username: req.body.username }).then((user) => {
+              if (user) {
+                return res.json({ register: "UAE" });
+              } else {
+                const newUser = new User({
+                  username: req.body.username,
+                  email: req.body.email,
+                  password: req.body.password,
+                  characters: [
+                    {
+                      characterName: req.body.characterName,
+                      role: req.body.role,
+                      class: req.body.class,
+                      spec: req.body.spec,
+                    },
+                  ],
+                  experience: req.body.experience,
+                  about: req.body.about,
+                  realID: req.body.realID,
+                });
+                // Hash password before saving in database
+                bcrypt.genSalt(10, (err, salt) => {
+                  bcrypt.hash(newUser.password, salt, (err, hash) => {
+                    if (err) throw err;
+                    newUser.password = hash;
+                    newUser
+                      .save()
+                      .then((user) => res.json(user))
+                      .catch((err) => console.log(err));
+                  });
+                });
+              }
+            });
+          }
+        }
+      );
     }
   });
 });
@@ -168,7 +175,7 @@ router.post("/updateUser", (req, res) => {
             },
           }
         )
-          .then((res) => {
+          .then(() => {
             return res.json("Succesfully updated user");
           })
           .catch((err) => {
@@ -182,7 +189,7 @@ router.post("/updateUser", (req, res) => {
   else if (req.body.currPassword !== "") {
     //check if email had been changed
     User.findOne({ email: email }).then((user) => {
-      if (user) {
+      if (user && req.body.emailChanged) {
         return res.json({ detailUpdate: "EAE" });
       } else {
         User.findOne({ username: username }).then((user) => {
@@ -207,7 +214,7 @@ router.post("/updateUser", (req, res) => {
                         },
                       }
                     )
-                      .then((res) => {
+                      .then(() => {
                         return res.json("Succesfully updated user");
                       })
                       .catch((err) => {
@@ -234,7 +241,7 @@ router.post("/updateUser", (req, res) => {
         },
       }
     )
-      .then((res) => {
+      .then(() => {
         return res.json("Succesfully updated user");
       })
       .catch((err) => {
@@ -243,25 +250,65 @@ router.post("/updateUser", (req, res) => {
   }
 });
 
-// @route POST api/user/updateCharacterSpec
+// @route POST api/user/updateCharacter
 // @desc update a users character
 // @access Public
-router.get("/updateCharacterSpec", (req, res) => {
+router.post("/updateCharacter", (req, res) => {
   User.updateOne(
     {
       username: req.body.username,
-      "characters.characterName": req.body.characterName,
+      "characters.$.characterName": req.body.characterName,
     },
     {
-      $set: { "characters.$.spec": req.body.spec },
+      $set: {
+        "characters.$.spec": req.body.spec,
+        "characters.$.role": req.body.role,
+      },
     }
   )
-    .then((res) => {
+    .then(() => {
       return res.json("Succesfully updated user");
     })
     .catch((err) => {
+      console.log(err);
       return res.json("ERR " + err);
     });
+});
+
+// @route POST api/user/addCharacter
+// @desc adds a character
+// @access Public
+router.post("/addCharacter", (req, res) => {
+  User.findOne({ "characters.characterName": req.body.characterName }).then(
+    (user) => {
+      if (user) {
+        return res.json({ detailUpdate: "CAE" });
+      } else {
+        User.updateOne(
+          {
+            username: req.body.username,
+          },
+          {
+            $push: {
+              characters: {
+                characterName: req.body.characterName,
+                role: req.body.role,
+                class: req.body.class,
+                spec: req.body.spec,
+              },
+            },
+          }
+        )
+          .then(() => {
+            return res.json("Succesfully updated user");
+          })
+          .catch((err) => {
+            console.log(err);
+            return res.json("ERR " + err);
+          });
+      }
+    }
+  );
 });
 
 module.exports = router;
