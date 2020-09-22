@@ -320,7 +320,6 @@ class Forums extends Component {
       let uploadedImages = this.state.uploadedImages;
       uploadedImages.push(file.name);
       this.setState({ uploadedImages: uploadedImages });
-      console.log(this.state.uploadedImages);
     }
   };
 
@@ -370,6 +369,7 @@ class Forums extends Component {
       author: this.state.author,
       initialText: this.state.initialText,
       uploadedImages: this.state.uploadedImages,
+      authorUsername: this.props.userInfo.username,
     };
     this.attemptForumSubmit(newForum).then(() => {
       if (this._isMounted) {

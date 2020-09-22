@@ -1,8 +1,13 @@
-import { GET_USER_INFO, SET_USER_ADMIN_STATUS } from "../actions/types";
+import {
+  GET_USER_INFO,
+  SET_USER_ADMIN_STATUS,
+  GET_PROFILE_INFO,
+} from "../actions/types";
 
 const initialState = {
   userData: {},
   userIsAdmin: "",
+  profileData: {},
 };
 
 export default function (state = initialState, action) {
@@ -17,6 +22,11 @@ export default function (state = initialState, action) {
       return {
         ...state,
         userIsAdmin: action.payload,
+      };
+    case GET_PROFILE_INFO:
+      return {
+        ...state,
+        profileData: action.payload,
       };
     default:
       return state;

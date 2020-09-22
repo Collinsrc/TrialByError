@@ -11,7 +11,21 @@ import {
 export const registerUser = (userData, history) => async (dispatch) => {
   await axios
     .post("/api/users/register", userData)
-    .then((res) => history.push("/login")) // re-direct to login on successful register
+    .then((res) => {
+      if (res.data.register === "CAE") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else if (res.data.register === "UAE") {
+        dispatch({
+          type: GET_ERRORS,
+          payload: res.data,
+        });
+      } else {
+        history.push("/login"); // re-direct to login on successful register
+      }
+    })
     .catch((err) =>
       dispatch({
         type: GET_ERRORS,

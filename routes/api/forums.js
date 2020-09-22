@@ -17,6 +17,7 @@ router.post("/createForum", (req, res) => {
         author: req.body.author,
         initialText: req.body.initialText,
         uploadedImages: req.body.uploadedImages,
+        authorUsername: req.body.authorUsername,
       });
 
       newForum
@@ -45,6 +46,7 @@ router.get("/getForums", (req, res) => {
         },
         replies: { $size: "$threadResponses" },
         dateCreated: 1,
+        authorUsername: 1,
       },
     },
     { $sort: { dateCreated: -1 } },
@@ -90,12 +92,13 @@ router.post("/addResponse", (req, res) => {
           author: req.body.author,
           responseText: req.body.responseText,
           uploadedImages: req.body.uploadedImages,
+          authorUsername: req.body.authorUsername,
         },
         uploadedImages: req.body.uploadedImages,
       },
     }
   )
-    .then((res) => {
+    .then(() => {
       return res.json("Successfully updated database");
     })
     .catch((err) => {
@@ -115,12 +118,13 @@ router.post("/deleteResponse", (req, res) => {
           author: req.body.author,
           responseText: req.body.responseText,
           uploadedImages: req.body.uploadedImages,
+          authorUsername: req.body.authorUsername,
         },
         uploadedImages: { $in: req.body.uploadedImages },
       },
     }
   )
-    .then((res) => {
+    .then(() => {
       return res.json("Successfully deleted response");
     })
     .catch((err) => {

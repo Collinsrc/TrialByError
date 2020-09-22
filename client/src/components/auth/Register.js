@@ -115,6 +115,7 @@ class Register extends Component {
       classSelection: "",
       specSelection: "",
       errors: {},
+      errorMessage: "",
     };
     this._isMounted = false;
   }
@@ -175,7 +176,22 @@ class Register extends Component {
 
   checkForErrors() {
     if (this.props.errors.email) {
-      this.setState({ open: true });
+      this.setState({
+        open: true,
+        errorMessage: "Email already exists in database!",
+      });
+    } else if (this.props.errors.register) {
+      if (this.props.errors.register === "CAE") {
+        this.setState({
+          open: true,
+          errorMessage: "Character already exists in database!",
+        });
+      } else if (this.props.errors.register === "UAE") {
+        this.setState({
+          open: true,
+          errorMessage: "Username already exists in database!",
+        });
+      }
     }
   }
 
@@ -203,7 +219,7 @@ class Register extends Component {
           autoHideDuration={6000}
           disableWindowBlurListener={false}
           onClose={this.handleClose}
-          message="Email has already been used"
+          message={this.state.errorMessage}
           action={
             <React.Fragment>
               <Button color="secondary" size="small" onClick={this.handleClose}>
