@@ -4,6 +4,7 @@ import errorReducer from "./errorReducer";
 import userInfoReducer from "./userInfoReducer";
 import raiderReducer from "./raiderReducer";
 import forumsReducer from "./forumsReducer";
+import administrationReducer from "./administrationReducer";
 
 export default combineReducers({
   auth: authReducer,
@@ -11,4 +12,5 @@ export default combineReducers({
   userInfo: userInfoReducer,
   raider: raiderReducer,
   forums: forumsReducer,
+  administration: administrationReducer,
 });
