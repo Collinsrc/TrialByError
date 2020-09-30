@@ -34,6 +34,7 @@ import { logoutUser } from "../../actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import { deleteForum } from "../../actions/forumActions";
 
 const classesAndSpecs = [
   {
@@ -251,6 +252,8 @@ class Administration extends Component {
       errorMessage: "",
       openConfirmDeleteUserDialog: false,
       userToDelete: {},
+      openConfirmDeleteForumDialog: false,
+      forumToDelete: {},
     };
     this._isMounted = false;
   }
@@ -302,6 +305,11 @@ class Administration extends Component {
     this.setState({ userToDelete: {} });
   };
 
+  closeConfirmDeleteForumDialog = () => {
+    this.setState({ openConfirmDeleteForumDialog: false });
+    this.setState({ forumToDelete: {} });
+  };
+
   deleteCharacter = async () => {
     this.deleteCharacterFromDatabase().then(async () => {
       this.setState({ imagesToRemove: this.props.administrationImageData });
@@ -328,6 +336,15 @@ class Administration extends Component {
     });
   };
 
+  deleteForum = async () => {
+    this.props.deleteForum(this.state.forumToDelete);
+    await deleteUploadedImages(this.state.forumToDelete.uploadedImages).then(
+      () => {
+        window.location.reload();
+      }
+    );
+  };
+
   async deleteUserFromDatabase() {
     await this.props.deleteUser(this.state.userToDelete);
     return Promise.resolve();
@@ -346,6 +363,11 @@ class Administration extends Component {
   initiateDeleteUser = (event, userData) => {
     this.setState({ openConfirmDeleteUserDialog: true });
     this.setState({ userToDelete: userData });
+  };
+
+  initiateDeleteForum = (event, forumData) => {
+    this.setState({ openConfirmDeleteForumDialog: true });
+    this.setState({ forumToDelete: forumData });
   };
 
   modifyCharacter = (event, character, rowData) => {
@@ -499,6 +521,36 @@ class Administration extends Component {
     const { classes } = this.props;
     return (
       <div>
+        <Dialog
+          open={this.state.openConfirmDeleteForumDialog}
+          onClose={this.closeConfirmDeleteForumDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Are you sure you want to delete the forum " +
+              this.state.forumToDelete.title +
+              "?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This will permanently remove the entire forum and all responses
+              from the database. All images that have been posted on the forum
+              will be deleted from the firebase database as well.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button
+              onClick={this.closeConfirmDeleteForumDialog}
+              color="primary"
+            >
+              Cancel
+            </Button>
+            <Button onClick={this.deleteForum} color="primary" autoFocus>
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Dialog
           open={this.state.openConfirmDeleteUserDialog}
           onClose={this.closeConfirmDeleteUserDialog}
@@ -1017,6 +1069,17 @@ class Administration extends Component {
           ]}
           data={this.state.forumData}
           title={<Typography variant="h4">Forum Data</Typography>}
+          actions={[
+            (rowData) => ({
+              icon: "delete",
+              tooltip: "Delete Forum",
+              onClick: (event, rowData) =>
+                this.initiateDeleteForum(event, rowData),
+            }),
+          ]}
+          options={{
+            actionsColumnIndex: -1,
+          }}
         />
       </div>
     );
@@ -1037,6 +1100,7 @@ Administration.propTypes = {
   modifyUser: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
   deleteUser: PropTypes.func.isRequired,
+  deleteForum: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -1059,6 +1123,7 @@ export default compose(
     logoutUser,
     modifyUser,
     deleteUser,
+    deleteForum,
   }),
   withStyles(styles, { name: "Administration" })
 )(Administration);
