@@ -172,7 +172,10 @@ class Navbar extends Component {
     if (this.props.auth.isAuthenticated === false) {
       return <NavTheme></NavTheme>;
     } else {
-      if (this.props.userIsAdmin === "true" || this.props.userInfo.isAdmin) {
+      if (
+        this.props.userIsAdmin === "true" ||
+        this.props.userInfo.isAdmin === true
+      ) {
         return (
           <NavThemeLoggedInAdmin
             logoutUser={this.props.logoutUser}

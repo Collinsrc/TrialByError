@@ -4,8 +4,10 @@ import {
   GET_ERRORS,
   SET_USER_ADMIN_STATUS,
   GET_PROFILE_INFO,
+  GET_ALL_USERS,
 } from "./types";
 
+// Get a users information
 export const getUserInfo = (username) => async (dispatch) => {
   await axios
     .get("/api/users/getUserInfo/" + username)
@@ -80,6 +82,7 @@ export const updateUser = (updateUser) => async (dispatch) => {
     );
 };
 
+//update a character
 export const updateCharacter = (character) => async (dispatch) => {
   await axios.post("/api/users/updateCharacter/", character).catch((err) => {
     dispatch({
@@ -89,6 +92,7 @@ export const updateCharacter = (character) => async (dispatch) => {
   });
 };
 
+//add a character
 export const addCharacter = (character) => async (dispatch) => {
   await axios
     .post("/api/users/addCharacter/", character)
@@ -104,6 +108,23 @@ export const addCharacter = (character) => async (dispatch) => {
           payload: {},
         });
       }
+    })
+    .catch((err) => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      });
+    });
+};
+
+export const getAllUsers = () => async (dispatch) => {
+  await axios
+    .get("/api/users/getAllUsers/")
+    .then((res) => {
+      dispatch({
+        type: GET_ALL_USERS,
+        payload: res.data,
+      });
     })
     .catch((err) => {
       dispatch({

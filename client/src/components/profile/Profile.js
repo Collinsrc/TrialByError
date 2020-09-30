@@ -446,7 +446,6 @@ class Profile extends Component {
 
   checkForDetailErrors(emailChanged, passwordChanged, characterAdded) {
     if (this.props.errors.detailUpdate) {
-      //console.log(this.props.errors.detailUpdate);
       if (this.props.errors.detailUpdate === "PDNM") {
         this.setState({ errorMessage: "Current password does not match!" });
       } else if (this.props.errors.detailUpdate === "EAE") {
@@ -521,14 +520,18 @@ class Profile extends Component {
           message={this.state.errorMessage}
           action={
             <React.Fragment>
-              <Button color="secondary" size="small" onClick={this.handleClose}>
+              <Button
+                color="secondary"
+                size="small"
+                onClick={this.handleSnackbarClose}
+              >
                 CLOSE
               </Button>
               <IconButton
                 size="small"
                 aria-label="close"
                 color="inherit"
-                onClick={this.handleClose}
+                onClick={this.handleSnackbarClose}
               >
                 <CloseIcon fontSize="small" />
               </IconButton>

@@ -1,5 +1,10 @@
 import axios from "axios";
-import { GET_FORUMS, GET_ERRORS, GET_SINGLE_FORUM } from "./types";
+import {
+  GET_FORUMS,
+  GET_ERRORS,
+  GET_SINGLE_FORUM,
+  GET_ALL_FORUM_DATA,
+} from "./types";
 
 export const getForums = () => async (dispatch) => {
   await axios.get("/api/forums/getForums/").then((res) => {
@@ -85,4 +90,22 @@ export const deleteForum = (forum) => async (dispatch) => {
   await axios
     .post("/api/forums/deleteForum", forum)
     .catch((err) => dispatch({ type: GET_ERRORS, payload: err.response.data }));
+};
+
+//get all forums (administrative)
+export const getAllForumData = () => async (dispatch) => {
+  await axios
+    .get("/api/forums/getAllForumData/")
+    .then((res) => {
+      dispatch({
+        type: GET_ALL_FORUM_DATA,
+        payload: res.data,
+      });
+    })
+    .catch((err) => {
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data,
+      });
+    });
 };

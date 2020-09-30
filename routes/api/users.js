@@ -303,12 +303,24 @@ router.post("/addCharacter", (req, res) => {
             return res.json("Succesfully updated user");
           })
           .catch((err) => {
-            console.log(err);
             return res.json("ERR " + err);
           });
       }
     }
   );
+});
+
+//@route GET api/user/getAllUsers
+//@desc returns all of the data in the user document
+//@access public
+router.get("/getAllUsers", (req, res) => {
+  User.find()
+    .then((data) => {
+      return res.json(data);
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
 });
 
 module.exports = router;

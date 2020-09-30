@@ -141,4 +141,17 @@ router.post("/deleteForum", (req, res) => {
   });
 });
 
+//@route GET api/forums/getAllForumData
+//@desc returns all of the data in the forums document
+//@access public
+router.get("/getAllForumData", (req, res) => {
+  Forum.find()
+    .then((data) => {
+      return res.json(data);
+    })
+    .catch((err) => {
+      return res.json("ERR " + err);
+    });
+});
+
 module.exports = router;
