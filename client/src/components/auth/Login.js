@@ -97,9 +97,11 @@ class Login extends Component {
 
   componentWillUnmount() {
     const { user } = this.props.auth;
-    this.props.getUserInfo(user.username).then(() => {
-      this._isMounted = false;
-    });
+    if (this.props.auth.isAuthenticated === true) {
+      this.props.getUserInfo(user.username).then(() => {
+        this._isMounted = false;
+      });
+    }
   }
 
   onSubmit(values) {
