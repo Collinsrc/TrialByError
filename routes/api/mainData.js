@@ -7,9 +7,27 @@ const MainData = require("../../models/MainData");
 //@desc returns all of the data in the mainData document
 //@access public
 router.get("/getAllMainData", (req, res) => {
-  MainData.find()
+  MainData.aggregate([
+    {
+      $project: {
+        title: 1,
+        author: 1,
+        dateString: {
+          $dateToString: { date: "$dateCreated", format: "%m-%d-%Y" },
+        },
+        dateCreated: 1,
+        uploadedImages: 1,
+        initialText: 1,
+      },
+    },
+    { $sort: { dateCreated: -1 } },
+  ])
     .then((data) => {
-      return res.json(data);
+      if (data) {
+        return res.json(data);
+      } else {
+        return res.json("NA");
+      }
     })
     .catch((err) => {
       return res.json("ERR " + err);
@@ -31,12 +49,20 @@ router.post("/createPost", (req, res) => {
         uploadedImages: req.body.uploadedImages,
       });
 
-      console.log(newPost);
       newPost
         .save()
         .then((post) => res.json(post))
         .catch((err) => res.json({ post: "CAP" }));
     }
+  });
+});
+
+// @route POST api/mainData/deletePost/
+// @desc removes a forum
+// @access Public
+router.post("/deletePost", (req, res) => {
+  MainData.deleteOne({ title: req.body.title }).catch((err) => {
+    return res.json("ERR " + err);
   });
 });
 

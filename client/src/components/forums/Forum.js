@@ -824,6 +824,7 @@ class Forum extends Component {
                       variant="contained"
                       className={classes.submitForumButton}
                       onClick={this.onSubmit}
+                      disabled={this.state.author === ""}
                     >
                       Add Response
                     </Button>

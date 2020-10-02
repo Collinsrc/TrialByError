@@ -42,3 +42,10 @@ export const createPost = (post) => async (dispatch) => {
       })
     );
 };
+
+//Delete a post
+export const deletePost = (post) => async (dispatch) => {
+  await axios
+    .post("/api/mainData/deletePost", post)
+    .catch((err) => dispatch({ type: GET_ERRORS, payload: err.response.data }));
+};

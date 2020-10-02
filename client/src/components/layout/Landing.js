@@ -5,7 +5,11 @@ import compose from "recompose/compose";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
 import { getUserInfo } from "../../actions/userInfoActions";
-import { getAllMainData, createPost } from "../../actions/mainDataActions";
+import {
+  getAllMainData,
+  createPost,
+  deletePost,
+} from "../../actions/mainDataActions";
 import Divider from "@material-ui/core/Divider";
 import Button from "@material-ui/core/Button";
 import { Link } from "react-router-dom";
@@ -26,6 +30,11 @@ import Fade from "@material-ui/core/Fade";
 import TextField from "@material-ui/core/TextField";
 import Grid from "@material-ui/core/Grid";
 import Snackbar from "@material-ui/core/Snackbar";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
 const styles = (theme) => {
   return {
@@ -100,6 +109,10 @@ const styles = (theme) => {
       width: "50%",
       justifyContent: "center",
     },
+    cardDiv: {},
+    removePostButton: {
+      textAlign: "right",
+    },
   };
 };
 
@@ -135,9 +148,9 @@ const uploadImage = (file) => {
     resolve({
       data: {
         url: url,
-        width: 1280,
-        height: 720,
-        alignment: "left", // or "center", "right"
+        width: 1680,
+        height: 945,
+        alignment: "center", // or "center", "right"
         type: "image", // or "video"
       },
     });
@@ -275,6 +288,8 @@ class MainPageComponent extends Component {
       postTitle: "",
       openSnackbar: false,
       errorText: "",
+      openConfirmDialog: false,
+      postToRemove: {},
     };
     this._isMounted = false;
   }
@@ -284,13 +299,21 @@ class MainPageComponent extends Component {
     const { user } = this.props.auth;
     if (this.props.auth.isAuthenticated === true) {
       this.getUserInfo(user.username).then(() => {
-        console.log(this.props.userInfo);
         this.setState({ currentUser: this.props.userInfo });
       });
     }
     this.getAllMainData().then(() => {
       this.setState({ mainData: this.props.mainData });
+      let newCount = this.props.mainData.length / this.state.pageSize;
+      newCount = Math.floor(newCount);
+      if (newCount === 0) {
+        newCount = 1;
+      } else if (this.props.mainData.length % this.state.pageSize !== 0) {
+        newCount += 1;
+      }
+      this.setState({ count: newCount });
     });
+
     this.ref = createRef(null);
   }
 
@@ -308,11 +331,17 @@ class MainPageComponent extends Component {
     return Promise.resolve();
   }
 
+  sortByDate(a, b) {
+    var dateA = new Date(a.dateCreated),
+      dateB = new Date(b.dateCreated);
+    return dateA - dateB;
+  }
+
   handlePageChange(event, value) {
     this.setState({ page: value });
-    let forum = this.state.completeForum;
-    forum.sort(this.sortByDate);
-    this.setState({ completeForum: forum });
+    let allPosts = this.state.mainData;
+    allPosts.sort(this.sortByDate);
+    this.setState({ mainData: allPosts });
   }
 
   handleOpenCreatePost = () => {
@@ -390,10 +419,56 @@ class MainPageComponent extends Component {
     this.setState({ openSnackbar: false });
   };
 
+  handleConfirmDialog = (postData) => {
+    this.setState({ openConfirmDialog: true, postToRemove: postData });
+  };
+
+  closeConfirmDialog = () => {
+    this.setState({ openConfirmDialog: false });
+  };
+
+  initiateDeletePost = async () => {
+    this.props.deletePost(this.state.postToRemove);
+    await deleteUploadedImages(this.state.postToRemove.uploadedImages).then(
+      () => {
+        window.location.reload();
+      }
+    );
+  };
+
+  getUTCDate(date) {
+    let newDate = new Date(date);
+    return newDate.toUTCString();
+  }
+
   render() {
     const { classes } = this.props;
     return (
       <div>
+        <Dialog
+          open={this.state.openConfirmDialog}
+          onClose={this.closeConfirmDialog}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">
+            {"Are you sure you want to delete the post?"}
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              This is not reversable. Any photos that were uploaded to the post
+              will be deleted forever.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.closeConfirmDialog} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.initiateDeletePost} color="primary" autoFocus>
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
         <Snackbar
           anchorOrigin={{
             vertical: "bottom",
@@ -427,6 +502,36 @@ class MainPageComponent extends Component {
         <Typography variant="h2">
           Welcome to the Trial By Error Guild Website!
         </Typography>
+        <br />
+        <Typography>
+          Trial By Error is a semi hardcore WoW raiding guild on the US Server
+          Area-52. The goal of the guild is to have a dedicated and competent
+          raid team to clear mythic level content whilst having fun and being
+          laid back. We're not a hardcore guild thats attempting server or world
+          first raid clears, however, we do expect to hit AOTC (Ahead of the
+          Curve) and expect raiders to take raiding seriously. When we're not
+          killing bosses, we want to have an open and mature group experience
+          where we can relax and have fun.
+        </Typography>
+        <br />
+        <Typography>
+          Anyone is welcome to apply to join the guild casually (or participate
+          in Mythic+ runs)! However, we are looking for the following classes
+          and specs:
+        </Typography>
+        <br />
+        <Typography>
+          <strong>Currently Recruiting</strong>
+        </Typography>
+        <Typography>
+          <strong>Tanks: </strong> All but Blood DK
+        </Typography>
+        <Typography>
+          <strong>Healers: </strong> All but Resto Shaman
+        </Typography>
+        <Typography>
+          <strong>DPS: </strong> All
+        </Typography>
         <div>
           <Button>
             <Link to="/roster" className={classes.link}>
@@ -454,6 +559,7 @@ class MainPageComponent extends Component {
             Add Main Page Item
           </Button>
         </div>
+        <br />
         <Divider className={classes.dividers} />
         <div>
           {this.state.mainData
@@ -469,13 +575,35 @@ class MainPageComponent extends Component {
             .map((postData, index) => (
               <Card className={classes.card} key={index}>
                 <CardContent>
-                  <div>
-                    <MUIRichTextEditor
-                      label="MainData"
-                      defaultValue={postData.initialText}
-                      toolbar={false}
-                      readOnly={true}
-                    ></MUIRichTextEditor>
+                  <div className={classes.cardDiv}>
+                    <Typography variant="h3">{postData.title}</Typography>
+                    <div className={classes.removePostButton}>
+                      <Typography>
+                        {this.getUTCDate(postData.dateCreated)}
+                      </Typography>
+                    </div>
+                    <div className={classes.cardDiv}>
+                      <MUIRichTextEditor
+                        label="MainData"
+                        defaultValue={postData.initialText}
+                        toolbar={false}
+                        readOnly={true}
+                      ></MUIRichTextEditor>
+                    </div>
+                    <div className={classes.removePostButton}>
+                      <Button
+                        aria-label="delete"
+                        onClick={(event) => this.handleConfirmDialog(postData)}
+                        className={
+                          this.state.currentUser.isAdmin &&
+                          this.props.auth.isAuthenticated
+                            ? ""
+                            : classes.buttonHidden
+                        }
+                      >
+                        Remove Post
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -595,6 +723,7 @@ MainPageComponent.propTypes = {
   getAllMainData: PropTypes.func.isRequired,
   createPost: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
+  deletePost: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -609,6 +738,7 @@ export default compose(
     getUserInfo,
     getAllMainData,
     createPost,
+    deletePost,
   }),
   withStyles(styles, {
     name: "MainPageComponent",

@@ -270,7 +270,6 @@ router.post("/updateCharacter", (req, res) => {
       return res.json("Succesfully updated user");
     })
     .catch((err) => {
-      console.log(err);
       return res.json("ERR " + err);
     });
 });
