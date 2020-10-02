@@ -10,6 +10,7 @@ const raiders = require("./routes/api/raiders");
 const blizzard = require("./routes/api/blizzard");
 const forums = require("./routes/api/forums");
 const administrative = require("./routes/api/administrative");
+const mainData = require("./routes/api/mainData");
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use("/api/raiders", raiders);
 app.use("/api/blizzard", blizzard);
 app.use("/api/forums", forums);
 app.use("/api/administrative", administrative);
+app.use("/api/mainData", mainData);
 
 // Serve static asses if in production
 if (process.env.NODE_ENV === "production") {

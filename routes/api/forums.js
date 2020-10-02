@@ -26,7 +26,6 @@ router.post("/createForum", (req, res) => {
         .catch((err) =>
           res.json({ forum: "Couldn't add forum into database" })
         );
-      //
     }
   });
 });

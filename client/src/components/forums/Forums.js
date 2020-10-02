@@ -573,6 +573,11 @@ class Forums extends Component {
                     variant="contained"
                     className={classes.submitForumButton}
                     onClick={this.onSubmit}
+                    disabled={
+                      this.state.forumTitle === "" ||
+                      this.state.categorySelection === "" ||
+                      this.state.author === ""
+                    }
                   >
                     Submit Forum
                   </Button>

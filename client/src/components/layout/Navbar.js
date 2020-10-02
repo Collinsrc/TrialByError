@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 import { connect } from "react-redux";
 import { logoutUser } from "../../actions/authActions";
 import { getUserInfo } from "../../actions/userInfoActions";
+import GuildCrest from "../../assets/emblem_97.png";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,6 +32,13 @@ const useStyles = makeStyles((theme) => ({
       color: theme.palette.primary,
     },
   },
+  guildCrest: {
+    width: 50,
+    height: 50,
+  },
+  colorOfToolbar: {
+    backgroundColor: "black",
+  },
 }));
 
 const NavTheme = () => {
@@ -38,7 +46,12 @@ const NavTheme = () => {
   return (
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.navBar}>
-        <Toolbar>
+        <Toolbar className={classes.colorOfToolbar}>
+          <img
+            src={GuildCrest}
+            alt="Guild Crest"
+            className={classes.guildCrest}
+          />
           <Typography variant="h6" className={classes.title}>
             <Link to="/" className={classes.link}>
               Trial By Error
@@ -74,7 +87,12 @@ const NavThemeLoggedIn = (props) => {
   return (
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.navBar}>
-        <Toolbar>
+        <Toolbar className={classes.colorOfToolbar}>
+          <img
+            src={GuildCrest}
+            alt="Guild Crest"
+            className={classes.guildCrest}
+          />
           <Typography variant="h6" className={classes.title}>
             <Link to="/" className={classes.link}>
               Trial By Error
@@ -119,7 +137,12 @@ const NavThemeLoggedInAdmin = (props) => {
   return (
     <div className={classes.root}>
       <AppBar position="fixed" className={classes.navBar}>
-        <Toolbar>
+        <Toolbar className={classes.colorOfToolbar}>
+          <img
+            src={GuildCrest}
+            alt="Guild Crest"
+            className={classes.guildCrest}
+          />
           <Typography variant="h6" className={classes.title}>
             <Link to="/" className={classes.link}>
               Trial By Error
