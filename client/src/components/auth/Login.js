@@ -14,6 +14,12 @@ import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { getUserInfo } from "../../actions/userInfoActions";
+import {
+  GoogleReCaptchaProvider,
+  GoogleReCaptcha,
+  useGoogleReCaptcha,
+} from "react-google-recaptcha-v3";
+import recaptcha from "../../config/recaptcha";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,12 +45,15 @@ const useStyles = makeStyles((theme) => ({
 
 const ButtonTheme = () => {
   const classes = useStyles();
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const token = executeRecaptcha("login_page");
   return (
     <Button
-      type="submit"
+      //type="submit"
       variant="contained"
       style={{ margin: 10, outline: 0 }}
       className={classes.button}
+      onClick={executeRecaptcha("login_page").then(console.log(token))}
     >
       Submit
     </Button>
@@ -223,7 +232,9 @@ class Login extends Component {
                     style={{ margin: 10, width: "50%" }}
                   />
                 </div>
-                <ButtonTheme />
+                <GoogleReCaptchaProvider reCaptchaKey={recaptcha.key}>
+                  <ButtonTheme />
+                </GoogleReCaptchaProvider>
               </Form>
             )}
           </Formik>
