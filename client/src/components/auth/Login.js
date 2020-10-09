@@ -9,7 +9,7 @@ import Divider from "@material-ui/core/Divider";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { loginUser } from "../../actions/authActions";
+import { loginUser, verifyCaptchaToken } from "../../actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
@@ -43,19 +43,38 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ButtonTheme = () => {
+const ButtonTheme = (props) => {
   const classes = useStyles();
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const token = executeRecaptcha("login_page");
+  const [token, setToken] = React.useState("");
+
+  const clickHandler = async () => {
+    if (!executeRecaptcha) {
+      return;
+    }
+
+    const result = await executeRecaptcha("login_page");
+    console.log(result);
+
+    let requiredData = {
+      secret: recaptcha.key,
+      response: result,
+    };
+
+    await props.callback(requiredData);
+    setToken(result);
+  };
+
   return (
     <Button
       //type="submit"
       variant="contained"
       style={{ margin: 10, outline: 0 }}
       className={classes.button}
-      onClick={executeRecaptcha("login_page").then(console.log(token))}
+      onClick={clickHandler}
     >
       Submit
+      {token && <p>Token: {token}</p>}
     </Button>
   );
 };
@@ -233,7 +252,7 @@ class Login extends Component {
                   />
                 </div>
                 <GoogleReCaptchaProvider reCaptchaKey={recaptcha.key}>
-                  <ButtonTheme />
+                  <ButtonTheme callback={this.props.verifyCaptchaToken} />
                 </GoogleReCaptchaProvider>
               </Form>
             )}
@@ -249,9 +268,14 @@ Login.propTypes = {
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
   getUserInfo: PropTypes.func.isRequired,
+  verifyCaptchaToken: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
 });
-export default connect(mapStateToProps, { loginUser, getUserInfo })(Login);
+export default connect(mapStateToProps, {
+  loginUser,
+  getUserInfo,
+  verifyCaptchaToken,
+})(Login);

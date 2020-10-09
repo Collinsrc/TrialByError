@@ -8,11 +8,7 @@ import reCaptcha from "../src/config/recaptcha";
 
 ReactDOM.render(
   <React.StrictMode>
-    <GoogleReCaptchaProvider
-      reCaptchaKey={reCaptcha.key}
-      language="en"
-      useRecaptchaNet="true"
-    >
+    <GoogleReCaptchaProvider reCaptchaKey={reCaptcha.key} language="en">
       <App />
     </GoogleReCaptchaProvider>
   </React.StrictMode>,

@@ -7,6 +7,7 @@ const keys = require("../../config/keys");
 const validateLoginInput = require("../../validation/login");
 // Load User model
 const User = require("../../models/User");
+const axios = require("axios").default;
 
 // @route POST api/users/register
 // @desc Register user
@@ -319,6 +320,18 @@ router.get("/getAllUsers", (req, res) => {
     })
     .catch((err) => {
       return res.json("ERR " + err);
+    });
+});
+
+//Verify captcha token
+router.post("/verifyCaptchaToken", async (req, res) => {
+  await axios
+    .post("https://www.google.com/recaptcha/api/siteverify", {
+      secret: req.body.secret,
+      response: req.body.response,
+    })
+    .then((result) => {
+      return result;
     });
 });
 

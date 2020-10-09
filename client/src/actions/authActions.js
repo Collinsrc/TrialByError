@@ -88,3 +88,17 @@ export const logoutUser = () => (dispatch) => {
   dispatch(setCurrentUser({}));
   dispatch(setUserInfo({}));
 };
+
+export const verifyCaptchaToken = (requiredData) => async (dispatch) => {
+  await axios
+    .post("/api/users/verifyCaptchaToken", requiredData)
+    .then((res) => {
+      if (res.success === "true") {
+        console.log("Yay!");
+        console.log(res);
+      } else {
+        console.log("Boo");
+        console.log(res);
+      }
+    });
+};
