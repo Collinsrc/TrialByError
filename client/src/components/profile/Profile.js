@@ -346,11 +346,12 @@ class Profile extends Component {
   };
 
   handleChangeSelectCharacter = (e) => {
-    this.setState({ characterSelected: e.target.value });
-    var character = this.state.characters.find((character) => {
-      return character.characterName === e.target.value;
+    this.setState({ characterSelected: e.target.value }, () => {
+      var character = this.state.characters.find((character) => {
+        return character.characterName === e.target.value;
+      });
+      this.setState({ characterDetails: character });
     });
-    this.setState({ characterDetails: character });
   };
 
   handleChangeSpec = (e) => {
@@ -410,10 +411,11 @@ class Profile extends Component {
   onCharacterUpdateSubmit = () => {
     let updatedCharacter = {
       username: this.props.profileInfo.username,
-      characterName: this.state.characterSelected.characterName,
+      characterName: this.state.characterSelected,
       spec: this.state.specSelection,
       role: this.state.roleSelection,
     };
+    console.log(updatedCharacter);
     this.props.updateCharacter(updatedCharacter).then(() => {
       window.location.reload();
     });
