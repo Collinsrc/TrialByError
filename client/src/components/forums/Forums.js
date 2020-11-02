@@ -27,6 +27,9 @@ import Snackbar from "@material-ui/core/Snackbar";
 
 import { storage } from "../../firebase";
 import { getUserInfo } from "../../actions/userInfoActions";
+import ReCAPTCHA from "react-google-recaptcha";
+import recaptcha from "../../config/recaptchaV2";
+import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
 
 const styles = (theme) => {
   return {
@@ -60,9 +63,9 @@ const styles = (theme) => {
       border: "2px solid #000",
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
-      maxHeight: 600,
-      height: 550,
-      width: "50%",
+      maxHeight: 800,
+      height: 800,
+      width: "70%",
       overflow: "auto",
       display: "flex",
       outline: "none",
@@ -97,6 +100,12 @@ const styles = (theme) => {
       width: "100%",
       display: "flex",
       justifyContent: "center",
+    },
+    recaptcha: {
+      display: "flex",
+      justifyContent: "center",
+      marginTop: 50,
+      marginBottom: 10,
     },
   };
 };
@@ -272,6 +281,7 @@ class Forums extends Component {
       characters: [],
       raidingCharacters: [],
       author: "",
+      captchaIsValid: false,
     };
     this._isMounted = false;
   }
@@ -333,8 +343,7 @@ class Forums extends Component {
 
   handleClose = () => {
     deleteUploadedImages(this.state.uploadedImages);
-    this.setState({ uploadedImages: [] });
-    this.setState({ open: false });
+    this.setState({ uploadedImages: [], open: false, captchaIsValid: false });
   };
 
   handleSnackClose = (event, reason) => {
@@ -389,6 +398,17 @@ class Forums extends Component {
       return;
     }
     this.props.history.push("./forums/:" + newForum.title);
+  }
+
+  recaptchaClicked = (value) => {
+    this.verifyRecaptcha(value).then(() => {
+      this.setState({ captchaIsValid: this.props.recaptcha });
+    });
+  };
+
+  async verifyRecaptcha(token) {
+    await this.props.validateRecaptchaV2(token);
+    return Promise.resolve();
   }
 
   render() {
@@ -568,6 +588,12 @@ class Forums extends Component {
                     ]}
                   />
                 </div>
+                <div className={classes.recaptcha}>
+                  <ReCAPTCHA
+                    sitekey={recaptcha.siteKey}
+                    onChange={this.recaptchaClicked}
+                  />
+                </div>
                 <div className={classes.textField}>
                   <Button
                     variant="contained"
@@ -576,7 +602,8 @@ class Forums extends Component {
                     disabled={
                       this.state.forumTitle === "" ||
                       this.state.categorySelection === "" ||
-                      this.state.author === ""
+                      this.state.author === "" ||
+                      (this.state.captchaIsValid ? false : true)
                     }
                   >
                     Submit Forum
@@ -600,16 +627,24 @@ Forums.propTypes = {
   errors: PropTypes.object.isRequired,
   getUserInfo: PropTypes.func.isRequired,
   userInfo: PropTypes.object.isRequired,
+  validateRecaptchaV2: PropTypes.func.isRequired,
+  recaptcha: PropTypes.bool.isRequired,
 };
 const mapStateToProps = (state) => ({
   forums: state.forums.forumData,
   auth: state.auth,
   errors: state.errors,
   userInfo: state.userInfo.userData,
+  recaptcha: state.recaptcha.isValidRecaptcha,
 });
 
 export default compose(
-  connect(mapStateToProps, { getForums, createForum, getUserInfo }),
+  connect(mapStateToProps, {
+    getForums,
+    createForum,
+    getUserInfo,
+    validateRecaptchaV2,
+  }),
   withStyles(styles, {
     name: "Forums",
   })

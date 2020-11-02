@@ -3,7 +3,7 @@ import TextField from "@material-ui/core/TextField";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import Button from "@material-ui/core/Button";
-import { makeStyles } from "@material-ui/styles";
+import { withStyles } from "@material-ui/styles";
 import Typography from "@material-ui/core/Typography";
 import Divider from "@material-ui/core/Divider";
 import { Link, withRouter } from "react-router-dom";
@@ -13,49 +13,42 @@ import { registerUser } from "../../actions/authActions";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-
+import compose from "recompose/compose";
 import SelectRole from "./SelectRole";
 import SelectClassSpec from "./SelectClassSpec";
+import ReCAPTCHA from "react-google-recaptcha";
+import recaptcha from "../../config/recaptchaV2";
+import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    margin: theme.spacing(3),
-    width: 345,
-  },
-  media: {
-    height: 140,
-  },
-  title: {
-    color: theme.palette.primary.main,
-  },
-  button: {
-    backgroundColor: theme.palette.secondary.main,
-    color: "#ffffff",
-  },
-  dividers: {
-    variant: "middle",
-    orientation: "horizontal",
-    height: 2,
-  },
-}));
-
-const ButtonTheme = () => {
-  const classes = useStyles();
-  return (
-    <Button
-      type="submit"
-      variant="contained"
-      style={{ margin: 10, outline: 0 }}
-      className={classes.button}
-    >
-      Submit
-    </Button>
-  );
-};
-
-const DividerStyle = () => {
-  const classes = useStyles();
-  return <Divider className={classes.dividers} />;
+const styles = (theme) => {
+  return {
+    root: {
+      margin: theme.spacing(3),
+      width: 345,
+    },
+    media: {
+      height: 140,
+    },
+    title: {
+      color: theme.palette.primary.main,
+    },
+    button: {
+      backgroundColor: theme.palette.secondary.main,
+      color: "#ffffff",
+    },
+    dividers: {
+      variant: "middle",
+      orientation: "horizontal",
+      height: 2,
+    },
+    recaptcha: {
+      display: "flex",
+      justifyContent: "center",
+    },
+    hidden: {
+      display: "none",
+    },
+  };
 };
 
 function equalTo(ref, msg) {
@@ -161,6 +154,7 @@ class Register extends Component {
       realID: values.realID,
       experience: values.experience,
       about: values.about,
+      captchaIsValid: false,
     };
     this.attemptRegistration(newUser).then(() => {
       if (this._isMounted) {
@@ -207,7 +201,19 @@ class Register extends Component {
     this.setState({ specSelection: data });
   };
 
+  recaptchaClicked = (value) => {
+    this.verifyRecaptcha(value).then(() => {
+      this.setState({ captchaIsValid: this.props.recaptcha });
+    });
+  };
+
+  async verifyRecaptcha(token) {
+    await this.props.validateRecaptchaV2(token);
+    return Promise.resolve();
+  }
+
   render() {
+    const { classes } = this.props;
     return (
       <div>
         <Snackbar
@@ -238,7 +244,7 @@ class Register extends Component {
         />
         <Typography variant="h4">Joining the Team? Fill this out!</Typography>
         <div>
-          <DividerStyle />
+          <Divider className={classes.dividers} />
           <Formik
             initialValues={{
               username: "",
@@ -418,7 +424,21 @@ class Register extends Component {
                     style={{ margin: 10, width: "50%" }}
                   />
                 </div>
-                <ButtonTheme />
+                <div className={classes.recaptcha}>
+                  <ReCAPTCHA
+                    sitekey={recaptcha.siteKey}
+                    onChange={this.recaptchaClicked}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  style={{ margin: 10, outline: 0 }}
+                  className={classes.button}
+                  disabled={this.state.captchaIsValid ? false : true}
+                >
+                  Submit
+                </Button>
               </Form>
             )}
           </Formik>
@@ -432,11 +452,20 @@ Register.propTypes = {
   registerUser: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired,
   errors: PropTypes.object.isRequired,
+  classes: PropTypes.object.isRequired,
+  validateRecaptchaV2: PropTypes.func.isRequired,
+  recaptcha: PropTypes.bool.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
+  recaptcha: state.recaptcha.isValidRecaptcha,
 });
 
-export default connect(mapStateToProps, { registerUser })(withRouter(Register));
+export default compose(
+  connect(mapStateToProps, { registerUser, validateRecaptchaV2 }),
+  withStyles(styles, {
+    name: "Register",
+  })
+)(withRouter(Register));

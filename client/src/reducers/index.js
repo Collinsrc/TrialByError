@@ -6,6 +6,7 @@ import raiderReducer from "./raiderReducer";
 import forumsReducer from "./forumsReducer";
 import administrationReducer from "./administrationReducer";
 import mainDataReducer from "./mainDataReducer";
+import recaptchaReducer from "./recaptchaReducer";
 
 export default combineReducers({
   auth: authReducer,
@@ -15,4 +16,5 @@ export default combineReducers({
   forums: forumsReducer,
   administration: administrationReducer,
   mainData: mainDataReducer,
+  recaptcha: recaptchaReducer,
 });

@@ -253,11 +253,11 @@ router.post("/updateUser", (req, res) => {
 // @route POST api/user/updateCharacter
 // @desc update a users character
 // @access Public
+
 router.post("/updateCharacter", (req, res) => {
   User.updateOne(
     {
-      username: req.body.username,
-      "characters.$.characterName": req.body.characterName,
+      "characters.characterName": req.body.characterName,
     },
     {
       $set: {

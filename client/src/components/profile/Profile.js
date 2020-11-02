@@ -29,6 +29,9 @@ import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import MenuItem from "@material-ui/core/MenuItem";
+import ReCAPTCHA from "react-google-recaptcha";
+import recaptcha from "../../config/recaptchaV2";
+import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
 
 const classesAndSpecs = [
   {
@@ -149,9 +152,9 @@ const styles = (theme) => {
       border: "2px solid #000",
       boxShadow: theme.shadows[5],
       padding: theme.spacing(2, 4, 3),
-      maxHeight: 600,
-      height: 550,
-      width: "50%",
+      maxHeight: 800,
+      height: 800,
+      width: "70%",
       overflow: "auto",
       display: "flex",
       outline: "none",
@@ -179,6 +182,11 @@ const styles = (theme) => {
       textAlign: "center",
       marginTop: 50,
       marginBottom: 50,
+    },
+    recaptcha: {
+      display: "flex",
+      justifyContent: "center",
+      marginBottom: 10,
     },
   };
 };
@@ -256,6 +264,7 @@ class Profile extends Component {
       characterDetails: {},
       roleSelection: "",
       classSelection: "",
+      captchaIsValid: false,
     };
     this._isMounted = false;
   }
@@ -329,6 +338,7 @@ class Profile extends Component {
       classSelection: "",
       specSelection: "",
       roleSelection: "",
+      captchaIsValid: false,
     });
   };
 
@@ -338,19 +348,21 @@ class Profile extends Component {
       classSelection: "",
       specSelection: "",
       roleSelection: "",
+      captchaIsValid: false,
     });
   };
 
   closeEditDetailModal = () => {
-    this.setState({ editDetailModalOpen: false });
+    this.setState({ editDetailModalOpen: false, captchaIsValid: false });
   };
 
   handleChangeSelectCharacter = (e) => {
-    this.setState({ characterSelected: e.target.value });
-    var character = this.state.characters.find((character) => {
-      return character.characterName === e.target.value;
+    this.setState({ characterSelected: e.target.value }, () => {
+      var character = this.state.characters.find((character) => {
+        return character.characterName === e.target.value;
+      });
+      this.setState({ characterDetails: character });
     });
-    this.setState({ characterDetails: character });
   };
 
   handleChangeSpec = (e) => {
@@ -410,10 +422,11 @@ class Profile extends Component {
   onCharacterUpdateSubmit = () => {
     let updatedCharacter = {
       username: this.props.profileInfo.username,
-      characterName: this.state.characterSelected.characterName,
+      characterName: this.state.characterSelected,
       spec: this.state.specSelection,
       role: this.state.roleSelection,
     };
+    console.log(updatedCharacter);
     this.props.updateCharacter(updatedCharacter).then(() => {
       window.location.reload();
     });
@@ -501,6 +514,17 @@ class Profile extends Component {
       default:
         return "#FFFFFF";
     }
+  }
+
+  recaptchaClicked = (value) => {
+    this.verifyRecaptcha(value).then(() => {
+      this.setState({ captchaIsValid: this.props.recaptcha });
+    });
+  };
+
+  async verifyRecaptcha(token) {
+    await this.props.validateRecaptchaV2(token);
+    return Promise.resolve();
   }
 
   render() {
@@ -638,12 +662,19 @@ class Profile extends Component {
                       : this.state.characterDetails.role}
                   </Typography>
                 </div>
+                <div className={classes.recaptcha}>
+                  <ReCAPTCHA
+                    sitekey={recaptcha.siteKey}
+                    onChange={this.recaptchaClicked}
+                  />
+                </div>
                 <div className={classes.characterInformationPane}>
                   <Button
                     type="submit"
                     variant="contained"
                     className={classes.button}
                     onClick={this.onCharacterUpdateSubmit}
+                    disabled={this.state.captchaIsValid ? false : true}
                   >
                     Save Changes
                   </Button>
@@ -775,11 +806,18 @@ class Profile extends Component {
                             )}
                         </TextField>
                       </div>
+                      <div className={classes.recaptcha}>
+                        <ReCAPTCHA
+                          sitekey={recaptcha.siteKey}
+                          onChange={this.recaptchaClicked}
+                        />
+                      </div>
                       <div className={classes.characterInformationPane}>
                         <Button
                           type="submit"
                           variant="contained"
                           className={classes.button}
+                          disabled={this.state.captchaIsValid ? false : true}
                         >
                           Add Character
                         </Button>
@@ -973,6 +1011,12 @@ class Profile extends Component {
                           className={classes.detailTextField}
                         />
                       </div>
+                      <div className={classes.recaptcha}>
+                        <ReCAPTCHA
+                          sitekey={recaptcha.siteKey}
+                          onChange={this.recaptchaClicked}
+                        />
+                      </div>
                       <div
                         style={{ display: "flex", justifyContent: "center" }}
                       >
@@ -980,6 +1024,7 @@ class Profile extends Component {
                           type="submit"
                           variant="contained"
                           className={classes.button}
+                          disabled={this.state.captchaIsValid ? false : true}
                         >
                           Save Changes
                         </Button>
@@ -1146,11 +1191,13 @@ Profile.propTypes = {
   auth: PropTypes.object.isRequired,
   updateUser: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
+  recaptcha: PropTypes.bool.isRequired,
 };
 const mapStateToProps = (state) => ({
   profileInfo: state.userInfo.profileData,
   auth: state.auth,
   errors: state.errors,
+  recaptcha: state.recaptcha.isValidRecaptcha,
 });
 
 export default compose(
@@ -1160,6 +1207,7 @@ export default compose(
     logoutUser,
     updateCharacter,
     addCharacter,
+    validateRecaptchaV2,
   }),
   withStyles(styles, {
     name: "Profile",
