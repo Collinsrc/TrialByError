@@ -63,7 +63,14 @@ class Roster extends Component {
           return "";
         } else {
           let retrievedData = res.data;
-          characterBust = retrievedData.bust_url;
+          let bust_url = retrievedData.bust_url;
+          if (bust_url !== undefined) {
+            characterBust = bust_url;
+          } else {
+            console.log(retrievedData.assets[1].value);
+            retrievedData = retrievedData.assets;
+            characterBust = retrievedData[1].value;
+          }
         }
       });
     return Promise.resolve(characterBust);
