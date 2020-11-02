@@ -19,6 +19,7 @@ import SelectClassSpec from "./SelectClassSpec";
 import ReCAPTCHA from "react-google-recaptcha";
 import recaptcha from "../../config/recaptchaV2";
 import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
+import { verifyCharacterExists } from "../../actions/blizzardActions";
 
 const styles = (theme) => {
   return {
@@ -109,6 +110,7 @@ class Register extends Component {
       specSelection: "",
       errors: {},
       errorMessage: "",
+      characterExists: false,
     };
     this._isMounted = false;
   }
@@ -142,23 +144,34 @@ class Register extends Component {
   }
 
   onSubmit = (values) => {
-    const newUser = {
-      username: values.username,
-      email: values.email,
-      password: values.password,
-      password2: values.password2,
-      characterName: values.characterName,
-      role: this.state.roleSelection,
-      class: this.state.classSelection,
-      spec: this.state.specSelection,
-      realID: values.realID,
-      experience: values.experience,
-      about: values.about,
-      captchaIsValid: false,
-    };
-    this.attemptRegistration(newUser).then(() => {
-      if (this._isMounted) {
-        this.checkForErrors();
+    //verify character exists first
+    this.verifyCharacterExists(values.characterName).then(() => {
+      this.setState({ characterExists: this.props.characterExists });
+      if (!this.state.characterExists) {
+        this.setState({
+          open: true,
+          errorMessage: "According to Blizzard, that character does not exist!",
+        });
+      } else {
+        const newUser = {
+          username: values.username,
+          email: values.email,
+          password: values.password,
+          password2: values.password2,
+          characterName: values.characterName,
+          role: this.state.roleSelection,
+          class: this.state.classSelection,
+          spec: this.state.specSelection,
+          realID: values.realID,
+          experience: values.experience,
+          about: values.about,
+          captchaIsValid: false,
+        };
+        this.attemptRegistration(newUser).then(() => {
+          if (this._isMounted) {
+            this.checkForErrors();
+          }
+        });
       }
     });
   };
@@ -209,6 +222,11 @@ class Register extends Component {
 
   async verifyRecaptcha(token) {
     await this.props.validateRecaptchaV2(token);
+    return Promise.resolve();
+  }
+
+  async verifyCharacterExists(characterName) {
+    await this.props.verifyCharacterExists(characterName);
     return Promise.resolve();
   }
 
@@ -455,16 +473,23 @@ Register.propTypes = {
   classes: PropTypes.object.isRequired,
   validateRecaptchaV2: PropTypes.func.isRequired,
   recaptcha: PropTypes.bool.isRequired,
+  characterExists: PropTypes.bool.isRequired,
+  verifyCharacterExists: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
   auth: state.auth,
   errors: state.errors,
   recaptcha: state.recaptcha.isValidRecaptcha,
+  characterExists: state.blizzard.characterExists,
 });
 
 export default compose(
-  connect(mapStateToProps, { registerUser, validateRecaptchaV2 }),
+  connect(mapStateToProps, {
+    registerUser,
+    validateRecaptchaV2,
+    verifyCharacterExists,
+  }),
   withStyles(styles, {
     name: "Register",
   })

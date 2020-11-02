@@ -32,6 +32,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import ReCAPTCHA from "react-google-recaptcha";
 import recaptcha from "../../config/recaptchaV2";
 import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
+import { verifyCharacterExists } from "../../actions/blizzardActions";
 
 const classesAndSpecs = [
   {
@@ -265,6 +266,7 @@ class Profile extends Component {
       roleSelection: "",
       classSelection: "",
       captchaIsValid: false,
+      characterExists: false,
     };
     this._isMounted = false;
   }
@@ -440,19 +442,35 @@ class Profile extends Component {
   };
 
   onCharacterAddSubmit = (values) => {
-    let newCharacter = {
-      username: this.props.profileInfo.username,
-      characterName: values.characterName,
-      spec: this.state.specSelection,
-      role: this.state.roleSelection,
-      class: this.state.classSelection,
-    };
-    this.attemptCharacterAdd(newCharacter).then(() => {
-      if (this._isMounted) {
-        this.checkForDetailErrors(false, false, true);
+    //verify character exists first
+    this.verifyCharacterExists(values.characterName).then(() => {
+      this.setState({ characterExists: this.props.characterExists });
+      if (!this.state.characterExists) {
+        this.setState({
+          errorMessage: "According to Blizzard, that character does not exist!",
+          openErrorSnackbar: true,
+        });
+      } else {
+        let newCharacter = {
+          username: this.props.profileInfo.username,
+          characterName: values.characterName,
+          spec: this.state.specSelection,
+          role: this.state.roleSelection,
+          class: this.state.classSelection,
+        };
+        this.attemptCharacterAdd(newCharacter).then(() => {
+          if (this._isMounted) {
+            this.checkForDetailErrors(false, false, true);
+          }
+        });
       }
     });
   };
+
+  async verifyCharacterExists(characterName) {
+    await this.props.verifyCharacterExists(characterName);
+    return Promise.resolve();
+  }
 
   async attemptUserUpdate(userUpdate) {
     await this.props.updateUser(userUpdate);
@@ -1199,12 +1217,16 @@ Profile.propTypes = {
   updateUser: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
   recaptcha: PropTypes.bool.isRequired,
+  validateRecaptchaV2: PropTypes.func.isRequired,
+  characterExists: PropTypes.bool.isRequired,
+  verifyCharacterExists: PropTypes.func.isRequired,
 };
 const mapStateToProps = (state) => ({
   profileInfo: state.userInfo.profileData,
   auth: state.auth,
   errors: state.errors,
   recaptcha: state.recaptcha.isValidRecaptcha,
+  characterExists: state.blizzard.characterExists,
 });
 
 export default compose(
@@ -1215,6 +1237,7 @@ export default compose(
     updateCharacter,
     addCharacter,
     validateRecaptchaV2,
+    verifyCharacterExists,
   }),
   withStyles(styles, {
     name: "Profile",
