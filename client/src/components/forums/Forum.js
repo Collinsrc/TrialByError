@@ -450,7 +450,13 @@ class Forum extends Component {
           return "";
         } else {
           let retrievedData = res.data;
-          characterAvatar = retrievedData.avatar_url;
+          let avatar_url = retrievedData.avatar_url;
+          if (avatar_url !== undefined) {
+            characterAvatar = avatar_url;
+          } else {
+            retrievedData = retrievedData.assets;
+            characterAvatar = retrievedData[0].value;
+          }
         }
       });
     return Promise.resolve(characterAvatar);

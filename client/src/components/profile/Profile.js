@@ -316,7 +316,6 @@ class Profile extends Component {
           if (bust_url !== undefined) {
             characterBust = bust_url;
           } else {
-            console.log(retrievedData.assets[1].value);
             retrievedData = retrievedData.assets;
             characterBust = retrievedData[1].value;
           }
