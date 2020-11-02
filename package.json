@@ -21,11 +21,11 @@
     "body-parser": "^1.19.0",
     "concurrently": "^5.2.0",
     "express": "^4.17.1",
-    "firebase": "^7.19.1",
+    "firebase": "^7.24.0",
     "is-empty": "^1.2.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.9.26",
-    "mui-rte": "^1.24.0",
+    "mongoose": "^5.10.11",
+    "mui-rte": "^1.25.0",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "recompose": "^0.30.0",
@@ -33,6 +33,6 @@
     "validator": "^13.1.1"
   },
   "devDependencies": {
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.6"
   }
 }
