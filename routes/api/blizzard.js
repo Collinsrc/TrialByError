@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios").default;
 
-const auth = require("../../config/blizzardAuth");
+require("dotenv").config();
+
 const {
   ClientCredentials,
   ResourceOwnerPassword,
@@ -12,8 +13,8 @@ const { json } = require("body-parser");
 
 const oauth2 = new ClientCredentials({
   client: {
-    id: auth.clientID,
-    secret: auth.clientSecret,
+    id: process.env.CLIENT_ID,
+    secret: process.env.CLIENT_SECRET,
   },
   auth: {
     tokenHost: "https://us.battle.net/oauth/token",
@@ -79,6 +80,29 @@ router.get("/getCharacterBust/:characterName", (req, res) => {
       })
       .catch((err) => {
         return res.json("CBNF");
+      });
+  });
+});
+
+router.get("/verifyCharacterExists/:characterName", (req, res) => {
+  let charName = req.params.characterName;
+  oauth2.getToken().then((token) => {
+    axios
+      .get(
+        `https://us.api.blizzard.com/profile/wow/character/area-52/${charName}?namespace=profile-us&locale=en_US`,
+        {
+          headers: {
+            "cache-control": "no-cache",
+            "content-type": "application/x-www-form-urlencoded",
+            authorization: `Bearer ${token.token.access_token}`,
+          },
+        }
+      )
+      .then((ret) => {
+        return res.json(true);
+      })
+      .catch((err) => {
+        return res.json("CDNE");
       });
   });
 });
