@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
-const auth = require("../../../config/email");
+
+require("dotenv").config();
 
 // The credentials for the email account you want to send mail from.
 const credentials = {
@@ -8,8 +9,8 @@ const credentials = {
   secure: true,
   auth: {
     // These environment variables will be pulled from the .env file
-    user: auth.MAIL_USER,
-    pass: auth.MAIL_PASS,
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
   },
 };
 
