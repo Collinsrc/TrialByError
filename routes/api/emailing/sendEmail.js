@@ -23,7 +23,7 @@ const transporter = nodemailer.createTransport(credentials);
 module.exports = async (to, content) => {
   // The from and to addresses for the email that is about to be sent.
   const contacts = {
-    from: auth.MAIL_USER,
+    from: process.env.MAIL_USER,
     to,
   };
 
