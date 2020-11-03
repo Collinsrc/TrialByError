@@ -442,6 +442,14 @@ class Register extends Component {
                     style={{ margin: 10, width: "50%" }}
                   />
                 </div>
+                <br />
+                <Typography variant="h6">
+                  <strong>
+                    You MUST verify your email prior to logging in! Check your
+                    email after submitting your application!
+                  </strong>
+                </Typography>
+                <br />
                 <div className={classes.recaptcha}>
                   <ReCAPTCHA
                     sitekey={recaptcha.siteKey}

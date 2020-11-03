@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const UserSchema = new Schema({
+const TempUserSchema = new Schema({
   username: {
     type: String,
     required: true,
@@ -77,10 +77,15 @@ const UserSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  expireAt: {
+    type: Date,
+    default: Date.now,
+    index: { expireAfterSeconds: 600 },
+  },
   date: {
     type: Date,
     default: Date.now,
   },
 });
 
-module.exports = User = mongoose.model("users", UserSchema);
+module.exports = TempUser = mongoose.model("tempusers", TempUserSchema);

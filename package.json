@@ -26,6 +26,7 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.10.11",
     "mui-rte": "^1.25.0",
+    "nodemailer": "^6.4.14",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "recompose": "^0.30.0",

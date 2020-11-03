@@ -12,6 +12,7 @@ const forums = require("./routes/api/forums");
 const administrative = require("./routes/api/administrative");
 const mainData = require("./routes/api/mainData");
 const google = require("./routes/api/google");
+const email = require("./routes/api/emailing/email");
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use("/api/forums", forums);
 app.use("/api/administrative", administrative);
 app.use("/api/mainData", mainData);
 app.use("/api/google", google);
+app.use("/api/emailing/email", email);
 
 // Serve static asses if in production
 if (process.env.NODE_ENV === "production") {

@@ -27,6 +27,7 @@ import Forums from "./components/forums/Forums";
 import Forum from "./components/forums/Forum";
 import Profile from "./components/profile/Profile";
 import Administration from "./components/administration/Administration";
+import Confirm from "./components/confirm/Confirm";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -58,6 +59,7 @@ const GridArea = () => {
             <Route path="/register" component={Register} />
             <Route path="/login" component={Login} />
             <Route path="/roster" component={Roster} />
+            <Route exact path="/confirm/:id" component={Confirm} />
             <Switch>
               <PrivateRoute exact path="/dashboard" component={Dashboard} />
               <PrivateRoute exact path="/forums" component={Forums} />

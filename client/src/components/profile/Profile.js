@@ -434,7 +434,6 @@ class Profile extends Component {
       spec: this.state.specSelection,
       role: this.state.roleSelection,
     };
-    console.log(updatedCharacter);
     this.props.updateCharacter(updatedCharacter).then(() => {
       window.location.reload();
     });
