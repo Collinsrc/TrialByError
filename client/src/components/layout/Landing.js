@@ -533,17 +533,29 @@ class MainPageComponent extends Component {
           <strong>DPS: </strong> All
         </Typography>
         <div>
-          <Button>
+          <Button
+            className={
+              this.props.auth.isAuthenticated ? classes.buttonHidden : ""
+            }
+          >
             <Link to="/roster" className={classes.link}>
               View the Team
             </Link>
           </Button>
-          <Button>
+          <Button
+            className={
+              this.props.auth.isAuthenticated ? classes.buttonHidden : ""
+            }
+          >
             <Link to="/register" className={classes.link}>
               Create an Account
             </Link>
           </Button>
-          <Button>
+          <Button
+            className={
+              this.props.auth.isAuthenticated ? classes.buttonHidden : ""
+            }
+          >
             <Link to="/login" className={classes.link}>
               Login
             </Link>
