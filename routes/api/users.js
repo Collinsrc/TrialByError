@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const keys = require("../../config/keys");
 const sendEmail = require("./emailing/sendEmail");
 const templates = require("./emailing/emailTemplate");
 // Load input validation
@@ -10,6 +9,8 @@ const validateLoginInput = require("../../validation/login");
 // Load User model
 const User = require("../../models/User");
 const TempUser = require("../../models/TempUser");
+
+require("dotenv").config();
 
 // @route POST api/users/register
 // @desc Register user
@@ -157,7 +158,7 @@ router.post("/login", (req, res) => {
         // Sign token
         jwt.sign(
           payload,
-          keys.secretOrKey,
+          process.env.SECRET_OR_KEY,
           {
             expiresIn: 31556926, // 1 year in seconds
           },

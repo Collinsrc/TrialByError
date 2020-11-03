@@ -14,6 +14,8 @@ const mainData = require("./routes/api/mainData");
 const google = require("./routes/api/google");
 const email = require("./routes/api/emailing/email");
 
+require("dotenv").config();
+
 const app = express();
 
 // Bodyparser middleware
@@ -25,7 +27,7 @@ app.use(
 
 app.use(bodyParser.json());
 
-const db = require("./config/keys").mongoURI;
+const db = process.env.MONGO_URI;
 
 //Connect to MongoDB
 mongoose

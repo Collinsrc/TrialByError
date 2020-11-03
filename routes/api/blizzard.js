@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios").default;
 
-const auth = require("../../config/blizzardAuth");
+require("dotenv").config();
+
 const {
   ClientCredentials,
   ResourceOwnerPassword,
@@ -12,8 +13,8 @@ const { json } = require("body-parser");
 
 const oauth2 = new ClientCredentials({
   client: {
-    id: auth.clientID,
-    secret: auth.clientSecret,
+    id: process.env.CLIENT_ID,
+    secret: process.env.CLIENT_SECRET,
   },
   auth: {
     tokenHost: "https://us.battle.net/oauth/token",
