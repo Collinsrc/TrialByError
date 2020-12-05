@@ -35,6 +35,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import { getGuildInformation } from "../../actions/guildInformationActions";
 
 const styles = (theme) => {
   return {
@@ -297,6 +298,7 @@ class MainPageComponent extends Component {
   componentDidMount() {
     this._isMounted = true;
     const { user } = this.props.auth;
+    this.props.getGuildInformation();
     if (this.props.auth.isAuthenticated === true) {
       this.getUserInfo(user.username).then(() => {
         this.setState({ currentUser: this.props.userInfo });
@@ -504,33 +506,25 @@ class MainPageComponent extends Component {
         </Typography>
         <br />
         <Typography>
-          Trial By Error is a semi hardcore WoW raiding guild on the US Server
-          Area-52. The goal of the guild is to have a dedicated and competent
-          raid team to clear mythic level content whilst having fun and being
-          laid back. We're not a hardcore guild thats attempting server or world
-          first raid clears, however, we do expect to hit AOTC (Ahead of the
-          Curve) and expect raiders to take raiding seriously. When we're not
-          killing bosses, we want to have an open and mature group experience
-          where we can relax and have fun.
+          {this.props.guildInformation.mainPageGuildDescription}
         </Typography>
         <br />
         <Typography>
-          Anyone is welcome to apply to join the guild casually (or participate
-          in Mythic+ runs)! However, we are looking for the following classes
-          and specs:
+          {this.props.guildInformation.mainPageSecondaryGuildDescription}
         </Typography>
         <br />
         <Typography>
           <strong>Currently Recruiting</strong>
         </Typography>
         <Typography>
-          <strong>Tanks: </strong> All but Blood DK
+          <strong>Tanks: </strong> {this.props.guildInformation.tankRecruitment}
         </Typography>
         <Typography>
-          <strong>Healers: </strong> All but Resto Shaman
+          <strong>Healers: </strong>{" "}
+          {this.props.guildInformation.healerRecruitment}
         </Typography>
         <Typography>
-          <strong>DPS: </strong> All
+          <strong>DPS: </strong> {this.props.guildInformation.dpsRecruitment}
         </Typography>
         <div>
           <Button
@@ -736,6 +730,8 @@ MainPageComponent.propTypes = {
   createPost: PropTypes.func.isRequired,
   errors: PropTypes.object.isRequired,
   deletePost: PropTypes.func.isRequired,
+  getGuildInformation: PropTypes.func.isRequired,
+  guildInformation: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -743,6 +739,7 @@ const mapStateToProps = (state) => ({
   userInfo: state.userInfo.userData,
   mainData: state.mainData.mainData,
   errors: state.errors,
+  guildInformation: state.guildInfo.guildInformation,
 });
 
 export default compose(
@@ -751,6 +748,7 @@ export default compose(
     getAllMainData,
     createPost,
     deletePost,
+    getGuildInformation,
   }),
   withStyles(styles, {
     name: "MainPageComponent",

@@ -20,6 +20,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import recaptcha from "../../config/recaptchaV2";
 import { validateRecaptchaV2 } from "../../actions/recaptchaActions";
 import { verifyCharacterExists } from "../../actions/blizzardActions";
+import { getGuildInformation } from "../../actions/guildInformationActions";
 
 const styles = (theme) => {
   return {
@@ -111,6 +112,7 @@ class Register extends Component {
       errors: {},
       errorMessage: "",
       characterExists: false,
+      raidRules: [],
     };
     this._isMounted = false;
   }
@@ -125,6 +127,10 @@ class Register extends Component {
 
   componentDidMount() {
     this._isMounted = true;
+    this.props.getGuildInformation().then(() => {
+      let rules = this.props.guildInformation.raidRules.split("/");
+      this.setState({ raidRules: rules });
+    });
     // If logged in and user navigates to Register page, should redirect them to landing
     if (this.props.auth.isAuthenticated) {
       this.props.history.push("/");
@@ -292,15 +298,20 @@ class Register extends Component {
                   <Typography>
                     <strong>Raid Times:</strong>
                     <br />
-                    Times
+                    <br />
+                    {this.props.guildInformation.raidTimes}
+                    <br />
                     <br />
                     <strong>Raid Rules:</strong>
                     <br />
-                    Rules
-                    <br />
+                    {this.state.raidRules.map((rule) => (
+                      <p key={rule}>{rule}</p>
+                    ))}
                     <strong>Expectations:</strong>
                     <br />
-                    Expectations
+                    <br />
+                    {this.props.guildInformation.raidExpectations}
+                    <br />
                     <br />
                   </Typography>
                   <Typography variant="h6">Login/Account Creation</Typography>
@@ -483,6 +494,8 @@ Register.propTypes = {
   recaptcha: PropTypes.bool.isRequired,
   characterExists: PropTypes.bool.isRequired,
   verifyCharacterExists: PropTypes.func.isRequired,
+  getGuildInformation: PropTypes.func.isRequired,
+  guildInformation: PropTypes.object.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -490,6 +503,7 @@ const mapStateToProps = (state) => ({
   errors: state.errors,
   recaptcha: state.recaptcha.isValidRecaptcha,
   characterExists: state.blizzard.characterExists,
+  guildInformation: state.guildInfo.guildInformation,
 });
 
 export default compose(
@@ -497,6 +511,7 @@ export default compose(
     registerUser,
     validateRecaptchaV2,
     verifyCharacterExists,
+    getGuildInformation,
   }),
   withStyles(styles, {
     name: "Register",
