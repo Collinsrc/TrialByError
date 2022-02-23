@@ -1,3 +1,3 @@
 module.exports = {
-  siteKey: "6LeKYNUZAAAAAJpRlDwtmdR951miKaN5U9Uvep6P",
+  siteKey: "6LdyU5ceAAAAAJlK0e5oNrTg-RYFGCiPpPpHl-yj",
 };
